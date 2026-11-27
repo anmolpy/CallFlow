@@ -1,8 +1,10 @@
 package com.callflow.controller;
 
+import com.callflow.dto.CallSummaryResponse;
 import com.callflow.dto.CustomerRequest;
 import com.callflow.dto.CustomerResponse;
 import com.callflow.dto.PageResponse;
+import com.callflow.service.CallService;
 import com.callflow.service.CustomerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,9 +30,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class CustomerController {
 
     private final CustomerService customerService;
+    private final CallService callService;
 
-    public CustomerController(CustomerService customerService) {
+    public CustomerController(CustomerService customerService, CallService callService) {
         this.customerService = customerService;
+        this.callService = callService;
     }
 
     @PostMapping
@@ -64,5 +68,13 @@ public class CustomerController {
             @RequestParam(required = false) String query,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(customerService.searchCustomers(query, pageable));
+    }
+
+    @GetMapping("/{id}/calls")
+    @Operation(summary = "Retrieve paginated call history for a customer")
+    public ResponseEntity<PageResponse<CallSummaryResponse>> getCustomerCalls(
+            @PathVariable Long id,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(callService.getCustomerCalls(id, pageable));
     }
 }

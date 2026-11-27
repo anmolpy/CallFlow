@@ -22,6 +22,10 @@ CallFlow is an incrementally developed customer-support call management applicat
   - Implemented [AgentController](backend/src/main/java/com/callflow/controller/AgentController.java) endpoints: `POST /api/agents`, `GET /api/agents/{id}`, `PUT /api/agents/{id}`, `PATCH /api/agents/{id}/availability`, and `GET /api/agents` (paginated search with `query` and `availabilityStatus` filters)
   - Added combined query + availability filtering in [AgentRepository](backend/src/main/java/com/callflow/repository/AgentRepository.java) and centralized agent assignment validation (`requireAssignableAgent` / `validateAssignable`) in [AgentService](backend/src/main/java/com/callflow/service/AgentService.java)
   - Verified `AgentServiceTest`, `AgentRepositoryTest`, and `AgentControllerTest` (`29` total backend tests passing)
+- **Milestone 6 — Call Management**: Completed
+  - Implemented [CallController](backend/src/main/java/com/callflow/controller/CallController.java) endpoints: `POST /api/calls`, `GET /api/calls/{id}`, `GET /api/calls` (paginated filtering by `status`, `agentId`, `customerId`, `search`, `fromDate`, `toDate`), `PATCH /api/calls/{id}/assign`, `PATCH /api/calls/{id}/status`, and `POST /api/calls/{id}/notes`
+  - Exposed customer/agent call history endpoints (`GET /api/customers/{id}/calls`, `GET /api/agents/{id}/calls`) and defaulted `endedAt` on `COMPLETED` transitions in [CallService](backend/src/main/java/com/callflow/service/CallService.java)
+  - Verified `CallLifecycleValidatorTest`, `CallServiceTest`, and `CallControllerTest` (`44` total backend tests passing)
 
 ## Tech Stack (Backend Foundation)
 
@@ -81,7 +85,7 @@ CallFlow is an incrementally developed customer-support call management applicat
 3. **Milestone 3** — Database and Entity Layer *(Completed)*
 4. **Milestone 4** — Customer Management *(Completed)*
 5. **Milestone 5** — Agent Management *(Completed)*
-6. **Milestone 6** — Call Management
+6. **Milestone 6** — Call Management *(Completed)*
 7. **Milestone 7** — Analytics
 8. **Milestone 8** — Automated Testing and Quality
 9. **Milestone 8B** — Apache JMeter Performance Testing

@@ -178,6 +178,9 @@ public class CallService {
             effectiveStart = Instant.now();
         }
         Instant effectiveEnd = request.endedAt() != null ? request.endedAt() : call.getEndedAt();
+        if (targetStatus == CallStatus.COMPLETED && effectiveEnd == null) {
+            effectiveEnd = Instant.now();
+        }
         Long requestedDuration = request.durationSeconds() != null
                 ? request.durationSeconds()
                 : call.getDurationSeconds();

@@ -2,10 +2,12 @@ package com.callflow.controller;
 
 import com.callflow.dto.AgentRequest;
 import com.callflow.dto.AgentResponse;
+import com.callflow.dto.CallSummaryResponse;
 import com.callflow.dto.PageResponse;
 import com.callflow.dto.UpdateAgentAvailabilityRequest;
 import com.callflow.entity.AgentAvailabilityStatus;
 import com.callflow.service.AgentService;
+import com.callflow.service.CallService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,9 +33,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class AgentController {
 
     private final AgentService agentService;
+    private final CallService callService;
 
-    public AgentController(AgentService agentService) {
+    public AgentController(AgentService agentService, CallService callService) {
         this.agentService = agentService;
+        this.callService = callService;
     }
 
     @PostMapping
@@ -76,5 +80,13 @@ public class AgentController {
             @RequestParam(required = false) AgentAvailabilityStatus availabilityStatus,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(agentService.listAgents(query, availabilityStatus, pageable));
+    }
+
+    @GetMapping("/{id}/calls")
+    @Operation(summary = "Retrieve paginated calls assigned to an agent")
+    public ResponseEntity<PageResponse<CallSummaryResponse>> getAgentCalls(
+            @PathVariable Long id,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(callService.getAgentCalls(id, pageable));
     }
 }
