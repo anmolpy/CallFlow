@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:postgresql://${TEST_DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:callflow}
     username: ${DB_USERNAME:callflow_user}
-    password: ${DB_PASSWORD}
+    password: ${TEST_DB_PASSWORD:${DB_PASSWORD:callflow_test_password}}
   flyway:
     locations: classpath:db/migration,classpath:db/seed
 
