@@ -5,6 +5,7 @@ frontend/dist/
 frontend/node_modules/
 *.class
 *.jar
+!backend/.mvn/wrapper/maven-wrapper.jar
 *.war
 *.ear
 
