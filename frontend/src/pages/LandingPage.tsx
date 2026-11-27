@@ -25,6 +25,7 @@ export function LandingPage() {
   const [activeEraIndex, setActiveEraIndex] = useState<number>(0);
   const [inHeroZone, setInHeroZone] = useState<boolean>(false);
   const [heroProgress, setHeroProgress] = useState<number>(0);
+  const [jumpVersion, setJumpVersion] = useState<number>(0);
 
   // Progressively preload Eras 2–5 in the background right after initial paint
   useEffect(() => {
@@ -86,22 +87,29 @@ export function LandingPage() {
     };
   }, []);
 
-  const scrollToProgress = useCallback(
-    (targetProgress: number) => {
-      const track = trackRef.current;
-      if (!track) return;
+  const scrollToProgress = useCallback((targetProgress: number) => {
+    const track = trackRef.current;
+    if (!track) return;
 
-      const trackTop = track.getBoundingClientRect().top + window.scrollY;
-      const maxScroll = Math.max(1, track.offsetHeight - window.innerHeight);
-      const targetY = trackTop + Math.min(1, Math.max(0, targetProgress)) * maxScroll;
+    const clamped = Math.min(1, Math.max(0, targetProgress));
+    const trackTop = track.getBoundingClientRect().top + window.scrollY;
+    const maxScroll = Math.max(1, track.offsetHeight - window.innerHeight);
+    const targetY = trackTop + clamped * maxScroll;
 
-      window.scrollTo({
-        top: targetY,
-        behavior: reducedMotion ? 'auto' : 'smooth',
-      });
-    },
-    [reducedMotion],
-  );
+    // Jump directly without smooth-scroll scrubbing through intermediate era boundaries,
+    // and sync progress/era immediately so the 3D stage transitions straight to the target.
+    scrollProgressRef.current = clamped;
+    setActiveEraIndex(getTargetEraIndex(clamped));
+    const isHero = clamped >= HERO_TRANSITION_START;
+    setInHeroZone(isHero);
+    setHeroProgress(isHero ? Math.min(1, Math.max(0, (clamped - HERO_TRANSITION_START) / 0.12)) : 0);
+    setJumpVersion((v) => v + 1);
+
+    window.scrollTo({
+      top: targetY,
+      behavior: 'auto',
+    });
+  }, []);
 
   const handleSkipToHero = useCallback(() => {
     scrollToProgress(1);
@@ -173,6 +181,7 @@ export function LandingPage() {
               <PhoneStageCanvas
                 scrollProgressRef={scrollProgressRef}
                 targetEraIndex={activeEraIndex}
+                jumpVersion={jumpVersion}
                 reducedMotion={reducedMotion}
               />
             </div>

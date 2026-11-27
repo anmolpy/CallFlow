@@ -10,6 +10,7 @@ interface NormalizedModelProps {
   visible?: boolean;
   targetBoundingRadius?: number;
   heroBlendRef: React.MutableRefObject<number>;
+  onSceneReady?: (eraIndex: number, group: THREE.Group) => void;
 }
 
 const TARGET_BOUNDING_RADIUS = 1.15;
@@ -19,6 +20,7 @@ export function NormalizedModel({
   visible = true,
   targetBoundingRadius = TARGET_BOUNDING_RADIUS,
   heroBlendRef,
+  onSceneReady,
 }: NormalizedModelProps) {
   const gltf = useGLTF(era.modelUrl);
   const { gl, scene, camera } = useThree();
@@ -142,25 +144,27 @@ export function NormalizedModel({
     };
   }, [era.id, normalizedScene]);
 
-  // Pre-compile WebGL shaders & upload textures in the background when mounted hidden
+  // Notify stage once mounted so offscreen GPU pre-warming can compile shaders,
+  // transmission passes, and texture uploads ahead of scroll.
   useEffect(() => {
-    if (visible) return;
     const group = groupRef.current;
     if (!group) return;
+    onSceneReady?.(era.index, group);
 
+    if (visible) return;
     let cancelled = false;
     const timer = window.setTimeout(() => {
       if (cancelled || !groupRef.current) return;
       void gl.compileAsync(groupRef.current, camera, scene).catch(() => {
         // Fallback if compileAsync is interrupted during unmount
       });
-    }, 60);
+    }, 40);
 
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [visible, normalizedScene, gl, camera, scene]);
+  }, [era.index, visible, normalizedScene, gl, camera, scene, onSceneReady]);
 
   useEffect(() => {
     const mats = clonedMaterialsRef.current;

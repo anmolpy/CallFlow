@@ -1,4 +1,4 @@
-import { Component, Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Component, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ContactShadows, Environment, Lightformer } from '@react-three/drei';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -15,6 +15,7 @@ import { NormalizedModel } from './NormalizedModel';
 interface PhoneStageCanvasProps {
   scrollProgressRef: React.MutableRefObject<number>;
   targetEraIndex: number;
+  jumpVersion: number;
   reducedMotion: boolean;
   onDisplayedEraChange?: (eraIndex: number) => void;
 }
@@ -62,6 +63,7 @@ interface SpinState {
 interface StageRigProps {
   scrollProgressRef: React.MutableRefObject<number>;
   targetEraIndex: number;
+  jumpVersion: number;
   reducedMotion: boolean;
   onDisplayedEraChange?: (eraIndex: number) => void;
 }
@@ -69,16 +71,21 @@ interface StageRigProps {
 function StageRig({
   scrollProgressRef,
   targetEraIndex,
+  jumpVersion,
   reducedMotion,
   onDisplayedEraChange,
 }: StageRigProps) {
-  const { camera, size } = useThree();
+  const { gl, scene, camera, size } = useThree();
   const [displayedEraIndex, setDisplayedEraIndex] = useState<number>(targetEraIndex);
   const [warmMountReady, setWarmMountReady] = useState<boolean>(false);
 
   const displayedEraRef = useRef<number>(targetEraIndex);
   const latestTargetEraRef = useRef<number>(targetEraIndex);
   const modelGroupRef = useRef<THREE.Group>(null);
+  const readyGroupsRef = useRef<Map<number, THREE.Group>>(new Map());
+  const warmedErasRef = useRef<Set<number>>(new Set([0]));
+  const warmTargetRef = useRef<THREE.WebGLRenderTarget | null>(null);
+  const lastWarmTimestampRef = useRef<number>(0);
 
   const smoothProgressRef = useRef<number>(scrollProgressRef.current);
   const heroBlendRef = useRef<number>(0);
@@ -102,14 +109,27 @@ function StageRig({
 
   const lookAtVec = useRef(new THREE.Vector3());
 
+  const handleSceneReady = useCallback((eraIndex: number, group: THREE.Group) => {
+    readyGroupsRef.current.set(eraIndex, group);
+  }, []);
+
   // Mount Eras 2–5 hidden in the background shortly after Era 1 first paint so
-  // Box3 normalization, texture uploads, and shader compilation finish ahead of scroll.
+  // Box3 normalization, texture uploads, transmission passes, and shaders warm up ahead of scroll.
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setWarmMountReady(true);
-    }, 320);
+    }, 260);
     return () => {
       window.clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (warmTargetRef.current) {
+        warmTargetRef.current.dispose();
+        warmTargetRef.current = null;
+      }
     };
   }, []);
 
@@ -124,6 +144,12 @@ function StageRig({
       window.removeEventListener('pointermove', handlePointerMove);
     };
   }, []);
+
+  // Snap smoothProgress immediately when user triggers a direct jump (Evolution / era bullet / Skip)
+  useEffect(() => {
+    if (jumpVersion === 0) return;
+    smoothProgressRef.current = scrollProgressRef.current;
+  }, [jumpVersion, scrollProgressRef]);
 
   useEffect(() => {
     latestTargetEraRef.current = targetEraIndex;
@@ -160,6 +186,45 @@ function StageRig({
     const dt = Math.min(delta, 0.12);
     const isDesktop = size.width >= 900;
     const baseFov = isDesktop ? 38 : 46;
+
+    // Staggered offscreen GPU warm-up (1 hidden model per ~80ms when idle)
+    // Forces transmission render target allocation, clearcoat/PBR shader compile,
+    // VBO upload, and CanvasTexture initialization without flashing on screen.
+    if (
+      warmMountReady &&
+      !spinRef.current.active &&
+      warmedErasRef.current.size < TELEPHONE_ERAS.length
+    ) {
+      const now = performance.now();
+      if (now - lastWarmTimestampRef.current > 80) {
+        for (const [idx, group] of readyGroupsRef.current.entries()) {
+          if (!warmedErasRef.current.has(idx)) {
+            lastWarmTimestampRef.current = now;
+            warmedErasRef.current.add(idx);
+
+            if (!warmTargetRef.current) {
+              warmTargetRef.current = new THREE.WebGLRenderTarget(64, 64, {
+                type: THREE.HalfFloatType,
+              });
+            }
+
+            const prevVisible = group.visible;
+            const prevTarget = gl.getRenderTarget();
+            group.visible = true;
+            gl.setRenderTarget(warmTargetRef.current);
+            gl.render(scene, camera);
+            gl.setRenderTarget(prevTarget);
+            group.visible = prevVisible;
+
+            if (warmedErasRef.current.size >= TELEPHONE_ERAS.length && warmTargetRef.current) {
+              warmTargetRef.current.dispose();
+              warmTargetRef.current = null;
+            }
+            break;
+          }
+        }
+      }
+    }
 
     const rawProgress = scrollProgressRef.current;
     smoothProgressRef.current = THREE.MathUtils.damp(
@@ -209,6 +274,7 @@ function StageRig({
 
       if (u >= 0.5 && !spin.swapped) {
         spin.swapped = true;
+        warmedErasRef.current.add(spin.toEra);
         displayedEraRef.current = spin.toEra;
         setDisplayedEraIndex(spin.toEra);
         onDisplayedEraChange?.(spin.toEra);
@@ -272,8 +338,6 @@ function StageRig({
       ? 0
       : pointerRef.current.smoothY * 0.05 * (1 - heroBlend * 0.7);
 
-    // During Era 5 -> Hero, azimuth sweeps continuously (-145° -> -44° -> 0°)
-    // without reversing direction, landing cleanly on the front screen.
     const targetAzimuth =
       THREE.MathUtils.lerp(orbitAzimuth, 0, heroBlend) + parallaxAzimuth;
     const targetElevation =
@@ -283,8 +347,6 @@ function StageRig({
     const heroDistance = isDesktop ? 3.85 : 5.65;
     const radius = THREE.MathUtils.lerp(orbitDistance, heroDistance, heroBlend);
 
-    // Center each phone cleanly in the gallery stage during Eras 1–5;
-    // sweep smoothly into the right showcase column for the CallFlow Hero.
     const orbitLookX = 0;
     const heroLookX = isDesktop ? -0.92 : 0;
     const orbitLookY = isDesktop ? -0.05 : -0.18;
@@ -365,7 +427,12 @@ function StageRig({
           }
           return (
             <Suspense key={era.id} fallback={isActive ? <PedestalPlaceholder /> : null}>
-              <NormalizedModel era={era} visible={isActive} heroBlendRef={heroBlendRef} />
+              <NormalizedModel
+                era={era}
+                visible={isActive}
+                heroBlendRef={heroBlendRef}
+                onSceneReady={handleSceneReady}
+              />
             </Suspense>
           );
         })}
@@ -406,6 +473,7 @@ class CanvasErrorBoundary extends Component<
 export function PhoneStageCanvas({
   scrollProgressRef,
   targetEraIndex,
+  jumpVersion,
   reducedMotion,
   onDisplayedEraChange,
 }: PhoneStageCanvasProps) {
@@ -441,6 +509,7 @@ export function PhoneStageCanvas({
         <StageRig
           scrollProgressRef={scrollProgressRef}
           targetEraIndex={targetEraIndex}
+          jumpVersion={jumpVersion}
           reducedMotion={reducedMotion}
           onDisplayedEraChange={onDisplayedEraChange}
         />

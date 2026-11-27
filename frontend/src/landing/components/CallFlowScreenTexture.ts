@@ -58,7 +58,9 @@ export function createCallFlowScreenTexture(
   // GLTF textures use flipY = false to match TEXCOORD_0 orientation.
   texture.flipY = false;
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 8;
+  texture.generateMipmaps = false;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
 
   const drawCallFlowLayer = (elapsedSeconds: number, morph: number) => {
     if (!uiCtx) return;
