@@ -1,0 +1,19 @@
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+
+app:
+  seed:
+    enabled: ${CALLFLOW_DEV_SEED_USERS:true}
+    admin-email: ${CALLFLOW_DEV_ADMIN_EMAIL:admin@callflow.local}
+    admin-password: ${CALLFLOW_DEV_ADMIN_PASSWORD:}
+    agent-email: ${CALLFLOW_DEV_AGENT_EMAIL:agent@callflow.local}
+    agent-password: ${CALLFLOW_DEV_AGENT_PASSWORD:}
+
+logging:
+  level:
+    com.callflow: DEBUG

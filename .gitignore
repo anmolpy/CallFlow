@@ -1,0 +1,27 @@
+# Compiled & Build Artifacts
+target/
+backend/target/
+frontend/dist/
+frontend/node_modules/
+*.class
+*.jar
+*.war
+*.ear
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# IDE & OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs & Test Outputs
+*.log
+coverage/
+playwright-report/
+test-results/
