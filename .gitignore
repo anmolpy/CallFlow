@@ -23,6 +23,21 @@ Thumbs.db
 
 # Logs & Test Outputs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 coverage/
 playwright-report/
 test-results/
+
+# Build Caches & Temp Files
+*.tsbuildinfo
+.vite/
+frontend/.vite/
+*.local
+*.tmp
+*.bak
+*.swp
+
+# Archived Assets
+assets/archive/
