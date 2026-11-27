@@ -50,6 +50,7 @@ CallFlow is an incrementally developed customer-support call management applicat
 - **Milestone 12 — Frontend Features *(In Progress)***:
   - **Login Page**: Completed ([LoginPage.tsx](frontend/src/pages/LoginPage.tsx), [LoginPage.test.tsx](frontend/src/pages/LoginPage.test.tsx)) with email/password validation, password visibility toggle, API error & field-error rendering, post-login redirect restoration, and Vitest + Testing Library verification (`6` passing tests)
   - **Dashboard Page**: Completed ([DashboardPage.tsx](frontend/src/pages/DashboardPage.tsx), [DashboardPage.test.tsx](frontend/src/pages/DashboardPage.test.tsx), [format.ts](frontend/src/utils/format.ts)) with KPI overview cards, call status breakdown bars, queue snapshot, agent performance table, retryable error states, and `9` total passing frontend tests
+  - **Customer Management Page**: Completed ([CustomersPage.tsx](frontend/src/pages/CustomersPage.tsx), [CustomerFormModal.tsx](frontend/src/components/customers/CustomerFormModal.tsx), [Modal.tsx](frontend/src/components/ui/Modal.tsx), [PaginationBar.tsx](frontend/src/components/ui/PaginationBar.tsx), [CustomersPage.test.tsx](frontend/src/pages/CustomersPage.test.tsx)) with search, sorting, pagination, create/edit customer validation & conflict error handling, responsive mobile cards, and `12` total passing frontend tests
 
 ## Tech Stack
 
@@ -140,6 +141,6 @@ CallFlow is an incrementally developed customer-support call management applicat
 10. **Milestone 9** — Authentication and Authorization *(Completed)*
 11. **Milestone 10** — API Documentation *(Completed)*
 12. **Milestone 11** — Frontend Foundation *(Completed)*
-13. **Milestone 12** — Frontend Features *(In Progress: Login and Dashboard completed; Customers, Customer Details, Calls, Call Details, Agents remaining)*
+13. **Milestone 12** — Frontend Features *(In Progress: Login, Dashboard, and Customers completed; Customer Details, Calls, Call Details, Agents remaining)*
 14. **Milestone 13** — Docker and CI/CD
 15. **Milestone 14** — Documentation and Final Review

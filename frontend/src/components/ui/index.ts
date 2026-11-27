@@ -4,4 +4,6 @@ export * from './Card';
 export * from './EmptyState';
 export * from './ErrorBanner';
 export * from './LoadingSpinner';
+export * from './Modal';
 export * from './PageHeader';
+export * from './PaginationBar';

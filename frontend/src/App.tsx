@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
+import { CustomersPage } from './pages/CustomersPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
@@ -14,21 +15,7 @@ export function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route
-            path="/customers"
-            element={
-              <PlaceholderPage
-                title="Customers"
-                description="Searchable customer directory."
-                routePath="/customers"
-                plannedCapabilities={[
-                  'Paginated customer listing and search filtering via customersApi.list()',
-                  'Create and edit customer records with validation feedback',
-                  'Navigate to customer call history details',
-                ]}
-              />
-            }
-          />
+          <Route path="/customers" element={<CustomersPage />} />
           <Route
             path="/customers/:id"
             element={

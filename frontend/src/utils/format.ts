@@ -45,3 +45,22 @@ export function formatPercent(part: number, total: number): string {
   }
   return `${Math.round((part / total) * 100)}%`;
 }
+
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+});
+
+export function formatDateTime(iso: string | null | undefined): string {
+  if (!iso) {
+    return '—';
+  }
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return '—';
+  }
+  return DATE_TIME_FORMATTER.format(date);
+}
