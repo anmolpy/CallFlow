@@ -48,7 +48,7 @@ const PLATFORM_CAPABILITIES = [
 
 export function FeatureOverview({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
-    <div className="relative z-20 border-t border-[#161211]/12 bg-[#f9f3f2] text-[#161211]">
+    <div className="relative z-20 border-t border-[#161211]/12 bg-white text-[#161211]">
       {/* Architectural Editorial Capabilities Ledger */}
       <section id="features" className="mx-auto max-w-7xl px-6 py-24 sm:px-10">
         <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
@@ -73,7 +73,7 @@ export function FeatureOverview({ isAuthenticated }: { isAuthenticated: boolean 
           {PLATFORM_CAPABILITIES.map((item) => (
             <div
               key={item.index}
-              className="grid gap-3 border-t border-[#161211]/12 py-6 transition-colors hover:bg-[#f2e9e7]/65 sm:px-3 md:grid-cols-12 md:items-baseline"
+              className="grid gap-3 border-t border-[#161211]/12 py-6 transition-colors hover:bg-neutral-50 sm:px-3 md:grid-cols-12 md:items-baseline"
             >
               <div className="flex items-baseline gap-4 md:col-span-4">
                 <span className="font-mono text-xs font-medium text-[#625957]">{item.index}</span>
@@ -85,7 +85,7 @@ export function FeatureOverview({ isAuthenticated }: { isAuthenticated: boolean 
                 {item.description}
               </p>
               <div className="md:col-span-3 md:text-right">
-                <code className="inline-block rounded-md border border-[#161211]/10 bg-[#fffdfd] px-2.5 py-1 font-mono text-[11px] text-[#161211]">
+                <code className="inline-block rounded-md border border-[#161211]/10 bg-neutral-50 px-2.5 py-1 font-mono text-[11px] text-[#161211]">
                   {item.endpoint}
                 </code>
               </div>
@@ -97,7 +97,7 @@ export function FeatureOverview({ isAuthenticated }: { isAuthenticated: boolean 
       {/* API & Console Strip */}
       <section
         id="api-overview"
-        className="border-t border-[#161211]/12 bg-[#f3eae8]"
+        className="border-t border-[#161211]/12 bg-white"
       >
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-8 px-6 py-20 sm:px-10 lg:flex-row lg:items-center">
           <div className="max-w-xl">
@@ -116,7 +116,7 @@ export function FeatureOverview({ isAuthenticated }: { isAuthenticated: boolean 
           <div className="flex flex-wrap items-center gap-3">
             <Link
               to={isAuthenticated ? '/dashboard' : '/login'}
-              className="inline-flex items-center gap-2 rounded-full bg-[#161211] px-6 py-3.5 text-sm font-semibold text-[#f9f3f2] transition hover:bg-[#2c2523]"
+              className="inline-flex items-center gap-2 rounded-full bg-[#161211] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#2c2523]"
             >
               <span>{isAuthenticated ? 'Open Console' : 'Sign In to Console'}</span>
               <ArrowRight className="h-4 w-4" />
@@ -125,7 +125,7 @@ export function FeatureOverview({ isAuthenticated }: { isAuthenticated: boolean 
               href="/swagger-ui/index.html"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-[#161211]/20 bg-[#f9f3f2] px-6 py-3.5 text-sm font-semibold text-[#161211] transition hover:border-[#161211]/45"
+              className="inline-flex items-center gap-2 rounded-full border border-[#161211]/20 bg-white px-6 py-3.5 text-sm font-semibold text-[#161211] transition hover:border-[#161211]/45"
             >
               <span>Explore Swagger UI</span>
               <ArrowUpRight className="h-4 w-4" />
@@ -135,7 +135,7 @@ export function FeatureOverview({ isAuthenticated }: { isAuthenticated: boolean 
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#161211]/12 bg-[#f9f3f2] px-6 py-10 sm:px-10">
+      <footer className="border-t border-[#161211]/12 bg-white px-6 py-10 sm:px-10">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <div>
             <p className="text-sm font-semibold tracking-tight text-[#161211]">CallFlow</p>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MotionConfig, motion } from 'motion/react';
+import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 import { ArrowRight, ChevronDown, Phone, SkipForward } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { CallFlowHeroPreview } from '../landing/components/CallFlowHeroPreview';
@@ -11,7 +11,6 @@ import {
   HERO_TRANSITION_START,
   TELEPHONE_ERAS,
   getTargetEraIndex,
-  preloadRemainingModels,
 } from '../landing/eras';
 import { usePrefersReducedMotion } from '../landing/usePrefersReducedMotion';
 
@@ -26,16 +25,45 @@ export function LandingPage() {
   const [inHeroZone, setInHeroZone] = useState<boolean>(false);
   const [heroProgress, setHeroProgress] = useState<number>(0);
   const [jumpVersion, setJumpVersion] = useState<number>(0);
+  const [warmupProgress, setWarmupProgress] = useState<{ loaded: number; total: number }>({
+    loaded: 0,
+    total: TELEPHONE_ERAS.length,
+  });
+  const [stageReady, setStageReady] = useState<boolean>(false);
 
-  // Progressively preload Eras 2–5 in the background right after initial paint
+  const handleWarmupProgress = useCallback((loaded: number, total: number) => {
+    setWarmupProgress((prev) =>
+      prev.loaded === loaded && prev.total === total ? prev : { loaded, total },
+    );
+  }, []);
+
+  const handleStageReady = useCallback(() => {
+    setStageReady(true);
+  }, []);
+
+  // Safety fallback so a slow/restricted environment never remains trapped behind the preloader
   useEffect(() => {
+    if (stageReady) return;
     const timer = window.setTimeout(() => {
-      preloadRemainingModels();
-    }, 120);
+      setStageReady(true);
+    }, 7000);
     return () => {
       window.clearTimeout(timer);
     };
-  }, []);
+  }, [stageReady]);
+
+  // Prevent scroll while GPU pre-warming completes so user enters cleanly at Era 1
+  useEffect(() => {
+    if (stageReady) {
+      document.body.style.overflow = '';
+      return;
+    }
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [stageReady]);
 
   // Scroll listener drives scrollProgressRef continuously without per-frame React state updates;
   // React state updates only when crossing era/hero thresholds.
@@ -96,8 +124,6 @@ export function LandingPage() {
     const maxScroll = Math.max(1, track.offsetHeight - window.innerHeight);
     const targetY = trackTop + clamped * maxScroll;
 
-    // Jump directly without smooth-scroll scrubbing through intermediate era boundaries,
-    // and sync progress/era immediately so the 3D stage transitions straight to the target.
     scrollProgressRef.current = clamped;
     setActiveEraIndex(getTargetEraIndex(clamped));
     const isHero = clamped >= HERO_TRANSITION_START;
@@ -116,18 +142,58 @@ export function LandingPage() {
   }, [scrollToProgress]);
 
   const currentEra = TELEPHONE_ERAS[activeEraIndex];
+  const progressPercent = stageReady
+    ? 100
+    : Math.min(96, Math.round((warmupProgress.loaded / warmupProgress.total) * 85) + 10);
 
   return (
     <MotionConfig reducedMotion="user">
       <div
         id="evolution-top"
-        className="min-h-screen bg-[#f9f3f2] text-[#161211] [overflow-x:clip]"
+        className="min-h-screen bg-white text-[#161211] [overflow-x:clip]"
       >
+        {/* Plain White GPU-Warming Preloader Overlay */}
+        <AnimatePresence>
+          {!stageReady && (
+            <motion.div
+              key="callflow-preloader"
+              role="status"
+              aria-label="Preparing CallFlow 3D experience"
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reducedMotion ? 0.15 : 0.35, ease: 'easeOut' }}
+              className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white px-6"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#161211] text-white">
+                  <Phone className="h-5 w-5" />
+                </div>
+                <span className="text-xl font-semibold tracking-[-0.03em] text-[#161211]">
+                  CallFlow
+                </span>
+              </div>
+
+              <div className="mt-7 h-[2px] w-48 overflow-hidden bg-[#161211]/10">
+                <div
+                  className="h-full bg-[#161211] transition-all duration-200 ease-out"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+
+              <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.2em] text-[#625957]">
+                {warmupProgress.loaded < warmupProgress.total
+                  ? `Loading models · ${warmupProgress.loaded}/${warmupProgress.total}`
+                  : 'Warming 3D stage'}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Minimal Editorial Top Header */}
-        <header className="fixed inset-x-0 top-0 z-40 border-b border-[#161211]/10 bg-[#f9f3f2]/85 backdrop-blur-md">
+        <header className="fixed inset-x-0 top-0 z-40 border-b border-[#161211]/10 bg-white/85 backdrop-blur-md">
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-10">
             <a href="#evolution-top" className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#161211] text-[#f9f3f2]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#161211] text-white">
                 <Phone className="h-4 w-4" />
               </div>
               <span className="text-base font-semibold tracking-[-0.02em] text-[#161211]">
@@ -156,7 +222,7 @@ export function LandingPage() {
                 <button
                   type="button"
                   onClick={handleSkipToHero}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[#161211]/15 bg-[#fffdfd] px-3.5 py-1.5 text-xs font-medium text-[#161211] transition hover:border-[#161211]/40 sm:text-sm"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#161211]/15 bg-white px-3.5 py-1.5 text-xs font-medium text-[#161211] transition hover:border-[#161211]/40 sm:text-sm"
                 >
                   <SkipForward className="h-3.5 w-3.5 text-blue-700" />
                   <span>Skip to CallFlow</span>
@@ -164,7 +230,7 @@ export function LandingPage() {
               )}
               <Link
                 to={isAuthenticated ? '/dashboard' : '/login'}
-                className="inline-flex items-center gap-1.5 rounded-full bg-[#161211] px-4 py-1.5 text-xs font-semibold text-[#f9f3f2] transition hover:bg-[#2c2523] sm:text-sm"
+                className="inline-flex items-center gap-1.5 rounded-full bg-[#161211] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-[#2c2523] sm:text-sm"
               >
                 <span>{isAuthenticated ? 'Dashboard' : 'Sign In'}</span>
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -175,18 +241,20 @@ export function LandingPage() {
 
         {/* Scroll-Driven 3D Evolution Track */}
         <div ref={trackRef} data-evolution-track="true" className="relative">
-          {/* Full-Bleed Sticky 3D Stage on pure #f9f3f2 */}
-          <div className="sticky top-0 h-[100dvh] w-full overflow-hidden bg-[#f9f3f2]">
+          {/* Full-Bleed Sticky 3D Stage on plain white #ffffff */}
+          <div className="sticky top-0 h-[100dvh] w-full overflow-hidden bg-white">
             <div className="relative z-10 h-full w-full">
               <PhoneStageCanvas
                 scrollProgressRef={scrollProgressRef}
                 targetEraIndex={activeEraIndex}
                 jumpVersion={jumpVersion}
                 reducedMotion={reducedMotion}
+                onWarmupProgress={handleWarmupProgress}
+                onStageReady={handleStageReady}
               />
             </div>
 
-            {/* Minimal Single-Line Era Caption (No card, no long copy) */}
+            {/* Minimal Single-Line Era Caption */}
             {!inHeroZone && (
               <div className="pointer-events-none absolute inset-x-0 bottom-16 z-20 px-5 sm:bottom-10 sm:px-10">
                 <div className="mx-auto flex max-w-7xl items-baseline justify-between gap-4">
@@ -277,7 +345,7 @@ export function LandingPage() {
             </nav>
 
             {/* Mobile compact bottom era stepper */}
-            <div className="fixed inset-x-4 bottom-3 z-30 flex items-center justify-between rounded-full border border-[#161211]/12 bg-[#fffdfd]/90 px-3.5 py-2 backdrop-blur-md sm:hidden">
+            <div className="fixed inset-x-4 bottom-3 z-30 flex items-center justify-between rounded-full border border-[#161211]/12 bg-white/95 px-3.5 py-2 backdrop-blur-md sm:hidden">
               <div className="flex items-center gap-1.5">
                 {TELEPHONE_ERAS.map((era, idx) => {
                   const isActive = !inHeroZone && activeEraIndex === idx;
@@ -338,7 +406,7 @@ export function LandingPage() {
                       y: inHeroZone ? (1 - heroProgress) * 20 : 20,
                     }}
                     transition={{ duration: reducedMotion ? 0.15 : 0.3, ease: 'easeOut' }}
-                    className="pointer-events-auto w-full max-w-xl space-y-4 rounded-2xl border border-[#161211]/10 bg-[#f9f3f2]/90 p-4 backdrop-blur-md sm:space-y-5 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none lg:max-w-[540px]"
+                    className="pointer-events-auto w-full max-w-xl space-y-4 rounded-2xl border border-[#161211]/10 bg-white/95 p-4 backdrop-blur-md sm:space-y-5 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none lg:max-w-[540px]"
                   >
                     <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-[#625957]">
                       Customer Support Call Orchestration
@@ -359,7 +427,7 @@ export function LandingPage() {
                     <div className="flex flex-wrap items-center gap-3 pt-1">
                       <Link
                         to={isAuthenticated ? '/dashboard' : '/login'}
-                        className="inline-flex items-center gap-2 rounded-full bg-[#161211] px-6 py-3 text-sm font-semibold text-[#f9f3f2] transition hover:bg-[#2c2523] sm:py-3.5"
+                        className="inline-flex items-center gap-2 rounded-full bg-[#161211] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#2c2523] sm:py-3.5"
                       >
                         <span>
                           {isAuthenticated ? 'Launch Dashboard' : 'Sign In / Launch Console'}
@@ -368,7 +436,7 @@ export function LandingPage() {
                       </Link>
                       <a
                         href="#api-overview"
-                        className="inline-flex items-center gap-2 rounded-full border border-[#161211]/20 bg-[#fffdfd] px-5 py-3 text-sm font-semibold text-[#161211] transition hover:border-[#161211]/45 sm:py-3.5"
+                        className="inline-flex items-center gap-2 rounded-full border border-[#161211]/20 bg-white px-5 py-3 text-sm font-semibold text-[#161211] transition hover:border-[#161211]/45 sm:py-3.5"
                       >
                         <span>Explore API Docs</span>
                       </a>
@@ -385,7 +453,7 @@ export function LandingPage() {
         </div>
 
         {/* Mobile Hero Preview below the sticky 3D Hero fold */}
-        <div className="relative z-20 bg-[#f9f3f2] px-4 pb-8 pt-2 sm:hidden">
+        <div className="relative z-20 bg-white px-4 pb-8 pt-2 sm:hidden">
           <CallFlowHeroPreview />
         </div>
 

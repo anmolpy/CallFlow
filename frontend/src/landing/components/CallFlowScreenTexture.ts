@@ -310,6 +310,9 @@ export function createCallFlowScreenTexture(
     texture.needsUpdate = true;
   };
 
+  // Pre-rasterize the CallFlow UI layer once at creation time so transitioning
+  // into the Hero never incurs a first-frame canvas draw hitch.
+  drawCallFlowLayer(0, 1);
   renderFrame(0, 0);
 
   return {

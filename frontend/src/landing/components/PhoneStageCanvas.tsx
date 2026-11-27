@@ -17,8 +17,12 @@ interface PhoneStageCanvasProps {
   targetEraIndex: number;
   jumpVersion: number;
   reducedMotion: boolean;
+  onWarmupProgress?: (loaded: number, total: number) => void;
+  onStageReady?: () => void;
   onDisplayedEraChange?: (eraIndex: number) => void;
 }
+
+const PREWARM_SEQUENCE = [4, 3, 2, 1, 0];
 
 function easeInOutExpo(x: number): number {
   if (x <= 0) return 0;
@@ -65,6 +69,8 @@ interface StageRigProps {
   targetEraIndex: number;
   jumpVersion: number;
   reducedMotion: boolean;
+  onWarmupProgress?: (loaded: number, total: number) => void;
+  onStageReady?: () => void;
   onDisplayedEraChange?: (eraIndex: number) => void;
 }
 
@@ -73,19 +79,19 @@ function StageRig({
   targetEraIndex,
   jumpVersion,
   reducedMotion,
+  onWarmupProgress,
+  onStageReady,
   onDisplayedEraChange,
 }: StageRigProps) {
-  const { gl, scene, camera, size } = useThree();
+  const { camera, size } = useThree();
   const [displayedEraIndex, setDisplayedEraIndex] = useState<number>(targetEraIndex);
-  const [warmMountReady, setWarmMountReady] = useState<boolean>(false);
 
   const displayedEraRef = useRef<number>(targetEraIndex);
   const latestTargetEraRef = useRef<number>(targetEraIndex);
   const modelGroupRef = useRef<THREE.Group>(null);
   const readyGroupsRef = useRef<Map<number, THREE.Group>>(new Map());
-  const warmedErasRef = useRef<Set<number>>(new Set([0]));
-  const warmTargetRef = useRef<THREE.WebGLRenderTarget | null>(null);
-  const lastWarmTimestampRef = useRef<number>(0);
+  const prewarmStepRef = useRef<number>(0);
+  const prewarmDoneRef = useRef<boolean>(false);
 
   const smoothProgressRef = useRef<number>(scrollProgressRef.current);
   const heroBlendRef = useRef<number>(0);
@@ -109,29 +115,13 @@ function StageRig({
 
   const lookAtVec = useRef(new THREE.Vector3());
 
-  const handleSceneReady = useCallback((eraIndex: number, group: THREE.Group) => {
-    readyGroupsRef.current.set(eraIndex, group);
-  }, []);
-
-  // Mount Eras 2–5 hidden in the background shortly after Era 1 first paint so
-  // Box3 normalization, texture uploads, transmission passes, and shaders warm up ahead of scroll.
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setWarmMountReady(true);
-    }, 260);
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (warmTargetRef.current) {
-        warmTargetRef.current.dispose();
-        warmTargetRef.current = null;
-      }
-    };
-  }, []);
+  const handleSceneReady = useCallback(
+    (eraIndex: number, group: THREE.Group) => {
+      readyGroupsRef.current.set(eraIndex, group);
+      onWarmupProgress?.(readyGroupsRef.current.size, TELEPHONE_ERAS.length);
+    },
+    [onWarmupProgress],
+  );
 
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
@@ -145,7 +135,6 @@ function StageRig({
     };
   }, []);
 
-  // Snap smoothProgress immediately when user triggers a direct jump (Evolution / era bullet / Skip)
   useEffect(() => {
     if (jumpVersion === 0) return;
     smoothProgressRef.current = scrollProgressRef.current;
@@ -158,7 +147,7 @@ function StageRig({
       return;
     }
 
-    if (reducedMotion) {
+    if (reducedMotion || !prewarmDoneRef.current) {
       spinRef.current.active = false;
       blurStrengthRef.current = 0;
       displayedEraRef.current = targetEraIndex;
@@ -187,43 +176,41 @@ function StageRig({
     const isDesktop = size.width >= 900;
     const baseFov = isDesktop ? 38 : 46;
 
-    // Staggered offscreen GPU warm-up (1 hidden model per ~80ms when idle)
-    // Forces transmission render target allocation, clearcoat/PBR shader compile,
-    // VBO upload, and CanvasTexture initialization without flashing on screen.
-    if (
-      warmMountReady &&
-      !spinRef.current.active &&
-      warmedErasRef.current.size < TELEPHONE_ERAS.length
-    ) {
-      const now = performance.now();
-      if (now - lastWarmTimestampRef.current > 80) {
-        for (const [idx, group] of readyGroupsRef.current.entries()) {
-          if (!warmedErasRef.current.has(idx)) {
-            lastWarmTimestampRef.current = now;
-            warmedErasRef.current.add(idx);
-
-            if (!warmTargetRef.current) {
-              warmTargetRef.current = new THREE.WebGLRenderTarget(64, 64, {
-                type: THREE.HalfFloatType,
-              });
-            }
-
-            const prevVisible = group.visible;
-            const prevTarget = gl.getRenderTarget();
-            group.visible = true;
-            gl.setRenderTarget(warmTargetRef.current);
-            gl.render(scene, camera);
-            gl.setRenderTarget(prevTarget);
-            group.visible = prevVisible;
-
-            if (warmedErasRef.current.size >= TELEPHONE_ERAS.length && warmTargetRef.current) {
-              warmTargetRef.current.dispose();
-              warmTargetRef.current = null;
-            }
-            break;
-          }
-        }
+    // Behind the white preloader overlay, step through every model on the real
+    // full-viewport pipeline (including EffectComposer + transmission pass + OLED screen)
+    // before unveiling Era 1 so first-scroll transitions never hitch.
+    if (!prewarmDoneRef.current) {
+      if (readyGroupsRef.current.size < TELEPHONE_ERAS.length) {
+        return;
       }
+
+      const step = prewarmStepRef.current;
+      if (step < PREWARM_SEQUENCE.length) {
+        const warmEra = PREWARM_SEQUENCE[step];
+        for (const [idx, group] of readyGroupsRef.current.entries()) {
+          group.visible = idx === warmEra;
+        }
+        // Trigger full-res EffectComposer on Eras 5..2, and crisp idle MSAA on Era 1
+        blurStrengthRef.current = warmEra === 0 ? 0 : 0.01;
+        // Force Era 5 CallFlow CanvasTexture upload on step 0
+        heroBlendRef.current = warmEra === 4 ? 0.9 : 0;
+        prewarmStepRef.current = step + 1;
+        return;
+      }
+
+      if (step === PREWARM_SEQUENCE.length) {
+        // Restore visibility to current target era and flush one clean idle frame
+        for (const [idx, group] of readyGroupsRef.current.entries()) {
+          group.visible = idx === displayedEraRef.current;
+        }
+        blurStrengthRef.current = 0;
+        heroBlendRef.current = 0;
+        prewarmStepRef.current = step + 1;
+        return;
+      }
+
+      prewarmDoneRef.current = true;
+      onStageReady?.();
     }
 
     const rawProgress = scrollProgressRef.current;
@@ -274,7 +261,6 @@ function StageRig({
 
       if (u >= 0.5 && !spin.swapped) {
         spin.swapped = true;
-        warmedErasRef.current.add(spin.toEra);
         displayedEraRef.current = spin.toEra;
         setDisplayedEraIndex(spin.toEra);
         onDisplayedEraChange?.(spin.toEra);
@@ -375,14 +361,14 @@ function StageRig({
 
   return (
     <>
-      <ambientLight intensity={0.48} color="#fffaf8" />
-      <directionalLight position={[4.5, 6.2, 5.2]} intensity={2.15} color="#fff9f2" />
+      <ambientLight intensity={0.5} color="#ffffff" />
+      <directionalLight position={[4.5, 6.2, 5.2]} intensity={2.15} color="#fffcf7" />
       <directionalLight position={[-4.5, 2.2, 3.0]} intensity={1.05} color="#e2e8f0" />
       <directionalLight position={[0, 3.5, -5.0]} intensity={1.15} color="#f8fafc" />
 
-      {/* Offline studio HDRI rig tuned for warm gallery #f9f3f2 reflections */}
+      {/* Offline studio HDRI rig tuned for crisp reflections on plain white #ffffff */}
       <Environment resolution={256} frames={1}>
-        <color attach="background" args={['#2b2523']} />
+        <color attach="background" args={['#2b2827']} />
         <group rotation={[-Math.PI / 5, 0, 0]}>
           <Lightformer
             form="rect"
@@ -395,7 +381,7 @@ function StageRig({
           <Lightformer
             form="rect"
             intensity={1.5}
-            color="#f5ede8"
+            color="#f1f5f9"
             position={[-5, 1.5, 1]}
             scale={[4, 7, 1]}
             target={[0, 0, 0]}
@@ -403,15 +389,15 @@ function StageRig({
           <Lightformer
             form="rect"
             intensity={1.6}
-            color="#fff7ed"
+            color="#fffaf0"
             position={[5, 2, 2]}
             scale={[4, 6, 1]}
             target={[0, 0, 0]}
           />
           <Lightformer
             form="rect"
-            intensity={0.9}
-            color="#f9f3f2"
+            intensity={1.0}
+            color="#ffffff"
             position={[0, -4, 0]}
             rotation={[-Math.PI / 2, 0, 0]}
             scale={[10, 10, 1]}
@@ -422,9 +408,6 @@ function StageRig({
       <group ref={modelGroupRef}>
         {TELEPHONE_ERAS.map((era, idx) => {
           const isActive = idx === displayedEraIndex;
-          if (!isActive && !warmMountReady) {
-            return null;
-          }
           return (
             <Suspense key={era.id} fallback={isActive ? <PedestalPlaceholder /> : null}>
               <NormalizedModel
@@ -440,11 +423,11 @@ function StageRig({
 
       <ContactShadows
         position={[0, -1.35, 0]}
-        opacity={0.28}
+        opacity={0.24}
         scale={6.4}
         blur={2.4}
         far={3.2}
-        color="#2a201e"
+        color="#1f1b1a"
       />
 
       <MotionBlurEffect blurStrengthRef={blurStrengthRef} spinDirectionRef={spinDirectionRef} />
@@ -453,13 +436,17 @@ function StageRig({
 }
 
 class CanvasErrorBoundary extends Component<
-  { children: ReactNode; fallback: ReactNode },
+  { children: ReactNode; fallback: ReactNode; onErrorFallback?: () => void },
   { hasError: boolean }
 > {
   state = { hasError: false };
 
   static getDerivedStateFromError() {
     return { hasError: true };
+  }
+
+  componentDidCatch() {
+    this.props.onErrorFallback?.();
   }
 
   render() {
@@ -475,14 +462,17 @@ export function PhoneStageCanvas({
   targetEraIndex,
   jumpVersion,
   reducedMotion,
+  onWarmupProgress,
+  onStageReady,
   onDisplayedEraChange,
 }: PhoneStageCanvasProps) {
   const activeEra = TELEPHONE_ERAS[targetEraIndex];
 
   return (
     <CanvasErrorBoundary
+      onErrorFallback={onStageReady}
       fallback={
-        <div className="flex h-full w-full items-center justify-center bg-[#f9f3f2] text-[#161211]">
+        <div className="flex h-full w-full items-center justify-center bg-white text-[#161211]">
           <div className="border-t border-[#161211]/15 pt-4 text-center">
             <p className="font-mono text-xs uppercase tracking-widest text-[#625957]">
               {activeEra.years}
@@ -511,6 +501,8 @@ export function PhoneStageCanvas({
           targetEraIndex={targetEraIndex}
           jumpVersion={jumpVersion}
           reducedMotion={reducedMotion}
+          onWarmupProgress={onWarmupProgress}
+          onStageReady={onStageReady}
           onDisplayedEraChange={onDisplayedEraChange}
         />
       </Canvas>

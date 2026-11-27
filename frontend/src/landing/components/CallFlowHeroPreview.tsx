@@ -12,7 +12,7 @@ const AGENT_ROSTER = [
 
 export function CallFlowHeroPreview() {
   return (
-    <div className="rounded-2xl border border-[#161211]/12 bg-[#fffdfd] p-4 shadow-[0_20px_50px_-24px_rgba(22,18,17,0.18)] sm:p-5">
+    <div className="rounded-2xl border border-[#161211]/12 bg-white p-4 shadow-[0_20px_50px_-24px_rgba(22,18,17,0.14)] sm:p-5">
       <div className="flex items-center justify-between border-b border-[#161211]/10 pb-3">
         <div className="flex items-center gap-2">
           <span className="inline-flex h-2 w-2 rounded-full bg-emerald-600" />
@@ -45,7 +45,7 @@ export function CallFlowHeroPreview() {
                   className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold ${
                     call.status === 'IN_PROGRESS'
                       ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-[#f2e9e7] text-[#161211]'
+                      : 'bg-neutral-100 text-[#161211]'
                   }`}
                 >
                   {call.status}
@@ -61,7 +61,7 @@ export function CallFlowHeroPreview() {
               <span>Agent Roster</span>
               <span className="text-emerald-700">2 available</span>
             </div>
-            <div className="space-y-1.5 rounded-xl bg-[#f9f3f2] p-2.5">
+            <div className="space-y-1.5 rounded-xl bg-neutral-50 p-2.5">
               {AGENT_ROSTER.map((agent) => (
                 <div key={agent.name} className="flex items-center justify-between text-xs">
                   <span className="flex items-center gap-2 font-medium text-[#161211]">
@@ -76,7 +76,7 @@ export function CallFlowHeroPreview() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#161211]/10 bg-[#f9f3f2]/70 p-2.5">
+          <div className="rounded-xl border border-[#161211]/10 bg-neutral-50/70 p-2.5">
             <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#625957]">
               Call Note · #CF-4821
             </p>

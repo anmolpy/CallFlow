@@ -110,11 +110,11 @@ export function getTargetEraIndex(progress: number): number {
   return Math.min(idx, TELEPHONE_ERAS.length - 1);
 }
 
-export function preloadRemainingModels(): void {
-  for (let i = 1; i < TELEPHONE_ERAS.length; i += 1) {
+export function preloadAllModels(): void {
+  for (let i = 0; i < TELEPHONE_ERAS.length; i += 1) {
     useGLTF.preload(TELEPHONE_ERAS[i].modelUrl);
   }
 }
 
-// Preload Era 1 immediately at module load for fast first paint.
-useGLTF.preload(TELEPHONE_ERAS[0].modelUrl);
+// Preload all 5 models immediately so the GPU-warm preloader resolves fast.
+preloadAllModels();

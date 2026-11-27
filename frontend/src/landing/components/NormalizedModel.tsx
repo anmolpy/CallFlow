@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { EraConfig } from '../eras';
 import { createCallFlowScreenTexture, type CallFlowCanvasHandle } from './CallFlowScreenTexture';
@@ -23,7 +23,6 @@ export function NormalizedModel({
   onSceneReady,
 }: NormalizedModelProps) {
   const gltf = useGLTF(era.modelUrl);
-  const { gl, scene, camera } = useThree();
   const groupRef = useRef<THREE.Group>(null);
   const screenTextureRef = useRef<CallFlowCanvasHandle | null>(null);
   const originalScreenMapsRef = useRef<{
@@ -144,27 +143,12 @@ export function NormalizedModel({
     };
   }, [era.id, normalizedScene]);
 
-  // Notify stage once mounted so offscreen GPU pre-warming can compile shaders,
-  // transmission passes, and texture uploads ahead of scroll.
+  // Notify stage once mounted & normalized so the preloader can run a real GPU warm-up pass
   useEffect(() => {
     const group = groupRef.current;
     if (!group) return;
     onSceneReady?.(era.index, group);
-
-    if (visible) return;
-    let cancelled = false;
-    const timer = window.setTimeout(() => {
-      if (cancelled || !groupRef.current) return;
-      void gl.compileAsync(groupRef.current, camera, scene).catch(() => {
-        // Fallback if compileAsync is interrupted during unmount
-      });
-    }, 40);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [era.index, visible, normalizedScene, gl, camera, scene, onSceneReady]);
+  }, [era.index, normalizedScene, onSceneReady]);
 
   useEffect(() => {
     const mats = clonedMaterialsRef.current;
