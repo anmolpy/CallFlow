@@ -1,0 +1,6 @@
+customerId,agentId,initialNote,progressNote,completionNote
+1,1,Inbound billing support call created,Verified invoice line items with customer,Issued adjustment and confirmed resolution
+2,2,Account access issue reported,Completed identity verification and reset MFA,Customer confirmed successful sign-in
+3,3,Webhook timeout inquiry created,Reviewed delivery logs and retry policy,Provided configuration fix and closed call
+4,1,Subscription renewal call created,Updated billing contact and payment method,Confirmed upcoming renewal schedule
+5,2,Dashboard export bug reported,Reproduced CSV export filter behavior,Applied workaround and documented ticket

@@ -1,0 +1,11 @@
+customerId,agentId,status,initialNote
+1,1,QUEUED,Customer called regarding monthly invoice charge
+2,2,IN_PROGRESS,Assisting customer with account MFA reset
+3,null,QUEUED,Inbound billing support request placed in queue
+4,3,QUEUED,API webhook latency follow-up requested
+5,1,IN_PROGRESS,Investigating invoice PDF download timeout
+1,2,QUEUED,Plan upgrade inquiry from customer portal
+2,3,IN_PROGRESS,Password recovery verification in progress
+3,1,QUEUED,Subscription renewal payment update needed
+4,null,QUEUED,General product onboarding question
+5,2,IN_PROGRESS,Reporting dashboard export permissions check

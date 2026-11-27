@@ -33,6 +33,9 @@ CallFlow is an incrementally developed customer-support call management applicat
   - Added [PaginationValidatorTest](backend/src/test/java/com/callflow/validation/PaginationValidatorTest.java), [CallRepositoryTest](backend/src/test/java/com/callflow/repository/CallRepositoryTest.java), and [CallFlowPostgresIT](backend/src/test/java/com/callflow/integration/CallFlowPostgresIT.java) (`PostgreSQLContainer<>("postgres:16-alpine")` with `@ServiceConnection` and [docker-java.properties](backend/src/test/resources/docker-java.properties) `api.version=1.44` for Docker Engine 29+ compatibility)
   - Simplified call lifecycle timestamp/duration handling in [CallService](backend/src/main/java/com/callflow/service/CallService.java) via shared `applyLifecycleState` helper
   - Verified `mvnw.cmd -o verify`: `55` Surefire tests + `1` Testcontainers Failsafe integration test (`CallFlowPostgresIT`) passing (`0` failures, `0` errors, `0` skipped) and JaCoCo coverage gate (`>= 80%`) met (`98.6%` service, `98.8%` mapper, `95.6%` validation line coverage)
+- **Milestone 8B — Apache JMeter Performance Testing**: Completed
+  - Created 5 JMeter `5.6.3` load-test plans, CSV datasets, runner script (`performance-tests/run-all.ps1`), JTL results, HTML dashboard reports, and analysis in [performance-tests/README.md](performance-tests/README.md)
+  - Executed all 5 scenarios against Spring Boot + `postgres:16-alpine`: `116,248` total samples with `0.00%` errors across concurrent call creation (`428.99/s`), customer search/retrieval (`970.66/s`), call assignment (`751.42/s`), full call lifecycle (`947.81/s`), and analytics (`585.57/s`)
 
 ## Tech Stack (Backend Foundation)
 
@@ -96,7 +99,7 @@ CallFlow is an incrementally developed customer-support call management applicat
 6. **Milestone 6** — Call Management *(Completed)*
 7. **Milestone 7** — Analytics *(Completed)*
 8. **Milestone 8** — Automated Testing and Quality *(Completed)*
-9. **Milestone 8B** — Apache JMeter Performance Testing
+9. **Milestone 8B** — Apache JMeter Performance Testing *(Completed)*
 10. **Milestone 9** — Authentication and Authorization
 11. **Milestone 10** — API Documentation
 12. **Milestone 11** — Frontend Foundation
