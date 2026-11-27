@@ -26,6 +26,9 @@ CallFlow is an incrementally developed customer-support call management applicat
   - Implemented [CallController](backend/src/main/java/com/callflow/controller/CallController.java) endpoints: `POST /api/calls`, `GET /api/calls/{id}`, `GET /api/calls` (paginated filtering by `status`, `agentId`, `customerId`, `search`, `fromDate`, `toDate`), `PATCH /api/calls/{id}/assign`, `PATCH /api/calls/{id}/status`, and `POST /api/calls/{id}/notes`
   - Exposed customer/agent call history endpoints (`GET /api/customers/{id}/calls`, `GET /api/agents/{id}/calls`) and defaulted `endedAt` on `COMPLETED` transitions in [CallService](backend/src/main/java/com/callflow/service/CallService.java)
   - Verified `CallLifecycleValidatorTest`, `CallServiceTest`, and `CallControllerTest` (`44` total backend tests passing)
+- **Milestone 7 — Analytics**: Completed
+  - Verified [AnalyticsController](backend/src/main/java/com/callflow/controller/AnalyticsController.java) endpoints (`GET /api/analytics/overview`, `GET /api/analytics/calls-by-status`, `GET /api/analytics/agent-performance`), [AnalyticsService](backend/src/main/java/com/callflow/service/AnalyticsService.java), and database-side aggregations in [CallRepository](backend/src/main/java/com/callflow/repository/CallRepository.java)
+  - Added and verified `AnalyticsServiceTest`, `AnalyticsRepositoryTest`, and `AnalyticsControllerTest` (`51` total backend tests passing)
 
 ## Tech Stack (Backend Foundation)
 
@@ -86,7 +89,7 @@ CallFlow is an incrementally developed customer-support call management applicat
 4. **Milestone 4** — Customer Management *(Completed)*
 5. **Milestone 5** — Agent Management *(Completed)*
 6. **Milestone 6** — Call Management *(Completed)*
-7. **Milestone 7** — Analytics
+7. **Milestone 7** — Analytics *(Completed)*
 8. **Milestone 8** — Automated Testing and Quality
 9. **Milestone 8B** — Apache JMeter Performance Testing
 10. **Milestone 9** — Authentication and Authorization
