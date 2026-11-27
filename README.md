@@ -49,6 +49,7 @@ CallFlow is an incrementally developed customer-support call management applicat
   - Verified `npm run typecheck`, `npm run build`, and live Vite dev server startup (`http://127.0.0.1:5173/` -> `200`)
 - **Milestone 12 — Frontend Features *(In Progress)***:
   - **Login Page**: Completed ([LoginPage.tsx](frontend/src/pages/LoginPage.tsx), [LoginPage.test.tsx](frontend/src/pages/LoginPage.test.tsx)) with email/password validation, password visibility toggle, API error & field-error rendering, post-login redirect restoration, and Vitest + Testing Library verification (`6` passing tests)
+  - **Dashboard Page**: Completed ([DashboardPage.tsx](frontend/src/pages/DashboardPage.tsx), [DashboardPage.test.tsx](frontend/src/pages/DashboardPage.test.tsx), [format.ts](frontend/src/utils/format.ts)) with KPI overview cards, call status breakdown bars, queue snapshot, agent performance table, retryable error states, and `9` total passing frontend tests
 
 ## Tech Stack
 
@@ -139,6 +140,6 @@ CallFlow is an incrementally developed customer-support call management applicat
 10. **Milestone 9** — Authentication and Authorization *(Completed)*
 11. **Milestone 10** — API Documentation *(Completed)*
 12. **Milestone 11** — Frontend Foundation *(Completed)*
-13. **Milestone 12** — Frontend Features *(In Progress: Login completed; Dashboard, Customers, Customer Details, Calls, Call Details, Agents remaining)*
+13. **Milestone 12** — Frontend Features *(In Progress: Login and Dashboard completed; Customers, Customer Details, Calls, Call Details, Agents remaining)*
 14. **Milestone 13** — Docker and CI/CD
 15. **Milestone 14** — Documentation and Final Review

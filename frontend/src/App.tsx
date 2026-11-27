@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
+import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
@@ -11,21 +12,7 @@ export function App() {
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
-          <Route
-            path="/dashboard"
-            element={
-              <PlaceholderPage
-                title="Operations Dashboard"
-                description="Real-time call center KPIs, summary metrics, and status distribution."
-                routePath="/dashboard"
-                plannedCapabilities={[
-                  'Call summary counts, completion metrics, and average duration via analyticsApi.getOverview()',
-                  'Call status distribution breakdown via analyticsApi.getCallsByStatus()',
-                  'Agent workload overview via analyticsApi.getAgentPerformance()',
-                ]}
-              />
-            }
-          />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route
             path="/customers"
             element={
