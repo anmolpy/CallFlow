@@ -42,18 +42,23 @@ CallFlow is an incrementally developed customer-support call management applicat
 - **Milestone 10 — API Documentation**: Completed
   - Enhanced [OpenApiConfig](backend/src/main/java/com/callflow/config/OpenApiConfig.java), controllers, [ApiErrorResponse](backend/src/main/java/com/callflow/exception/ApiErrorResponse.java), and request/response DTOs with OpenAPI 3 schemas, parameter descriptions, JWT bearer opt-out on `/api/auth/login`, and `400`/`401`/`403`/`404`/`409`/`422` error responses
   - Verified [OpenApiDocumentationTest](backend/src/test/java/com/callflow/config/OpenApiDocumentationTest.java) (`67` Surefire tests + `1` Testcontainers IT passing) and live Swagger UI (`/swagger-ui/index.html` -> `200`, `/v3/api-docs` -> `17` paths)
+- **Milestone 11 — Frontend Foundation**: Completed
+  - Created React `18`, TypeScript `5.6`, Vite `6`, and Tailwind CSS `3.4` workspace in [frontend/](frontend/package.json) with `/api` proxy to `http://127.0.0.1:8080` in [vite.config.ts](frontend/vite.config.ts)
+  - Implemented typed API client modules ([client.ts](frontend/src/api/client.ts), [auth.ts](frontend/src/api/auth.ts), [customers.ts](frontend/src/api/customers.ts), [agents.ts](frontend/src/api/agents.ts), [calls.ts](frontend/src/api/calls.ts), [analytics.ts](frontend/src/api/analytics.ts)) and [AuthContext](frontend/src/context/AuthContext.tsx)
+  - Built reusable UI primitives (`Badge`, `Button`, `Card`, `EmptyState`, `ErrorBanner`, `LoadingSpinner`, `PageHeader`), [AppShell](frontend/src/components/layout/AppShell.tsx), [ProtectedRoute](frontend/src/routes/ProtectedRoute.tsx), and placeholder application routes in [App.tsx](frontend/src/App.tsx)
+  - Verified `npm run typecheck`, `npm run build`, and live Vite dev server startup (`http://127.0.0.1:5173/` -> `200`)
 
-## Tech Stack (Backend Foundation)
+## Tech Stack
 
-- **Language & Build**: Java 21, Maven Wrapper (`mvnw` / `mvnw.cmd`), Spring Boot `3.4.5`
-- **Database & Migrations**: PostgreSQL, Spring Data JPA / Hibernate, Flyway
-- **Security & API Docs**: Spring Security, JJWT `0.12.6`, Springdoc OpenAPI `2.8.5`
-- **Testing & Quality (configured in `pom.xml`)**: JUnit 5, Mockito, Testcontainers, JaCoCo `0.8.12`
+- **Backend**: Java 21, Maven Wrapper (`mvnw` / `mvnw.cmd`), Spring Boot `3.4.5`, PostgreSQL, Spring Data JPA / Hibernate, Flyway, Spring Security, JJWT `0.12.6`, Springdoc OpenAPI `2.8.5`
+- **Frontend**: React `18.3`, TypeScript `5.6`, Vite `6`, Tailwind CSS `3.4`, React Router `6`, Lucide icons
+- **Testing & Quality**: JUnit 5, Mockito, Testcontainers, JaCoCo `0.8.12`, Apache JMeter `5.6.3`
 
 ## Prerequisites
 
 - **Java 21** (`JAVA_HOME` pointing to your JDK 21 installation, e.g. `C:\Program Files\Java\jdk-21`)
 - **PostgreSQL** running locally (default `localhost:5432`)
+- **Node.js 22+** and **npm 10+** (for the `frontend/` React + Vite app)
 - **Docker Desktop** (for Testcontainers integration tests `*IT.java` via `mvnw.cmd verify`)
 
 ## Local Setup & Running the Backend
@@ -95,6 +100,28 @@ CallFlow is an incrementally developed customer-support call management applicat
    ```
    Verify health at `http://localhost:8080/actuator/health` (`{"status":"UP"}`).
 
+## Local Setup & Running the Frontend
+
+1. **Install dependencies**:
+   ```powershell
+   cd F:\CallFlow\frontend
+   npm install
+   ```
+
+2. **Start the Vite development server** (proxies `/api/*` to `http://127.0.0.1:8080`):
+   ```powershell
+   cd F:\CallFlow\frontend
+   npm run dev
+   ```
+   Open `http://localhost:5173`.
+
+3. **Typecheck and build for production**:
+   ```powershell
+   cd F:\CallFlow\frontend
+   npm run typecheck
+   npm run build
+   ```
+
 ## Development Roadmap
 
 1. **Milestone 1** — Workspace Audit and Foundation Verification *(Completed)*
@@ -108,7 +135,7 @@ CallFlow is an incrementally developed customer-support call management applicat
 9. **Milestone 8B** — Apache JMeter Performance Testing *(Completed)*
 10. **Milestone 9** — Authentication and Authorization *(Completed)*
 11. **Milestone 10** — API Documentation *(Completed)*
-12. **Milestone 11** — Frontend Foundation
+12. **Milestone 11** — Frontend Foundation *(Completed)*
 13. **Milestone 12** — Frontend Features
 14. **Milestone 13** — Docker and CI/CD
 15. **Milestone 14** — Documentation and Final Review
