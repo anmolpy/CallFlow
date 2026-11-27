@@ -1,0 +1,16 @@
+spring:
+  config:
+    import: optional:file:.env[.properties],optional:file:../.env[.properties]
+  datasource:
+    url: jdbc:postgresql://${TEST_DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:callflow}
+    username: ${DB_USERNAME:callflow_user}
+    password: ${DB_PASSWORD}
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed
+
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:test_only_jwt_secret_key_minimum_32_bytes_long_123456}
+  seed:
+    enabled: false

@@ -15,6 +15,9 @@ CallFlow is an incrementally developed customer-support call management applicat
   - Verified foreign keys, unique constraints, and check constraints (`chk_users_role`, `chk_agents_availability`, `chk_calls_status`, `chk_calls_duration_nonneg`, `chk_calls_timestamps`, `chk_calls_completed_timestamps`)
   - Added [V3__add_supporting_indexes.sql](backend/src/main/resources/db/migration/V3__add_supporting_indexes.sql) (`idx_users_email_lower`, `idx_agents_email_lower`, `idx_call_notes_author_agent_id`) and verified Flyway migration to `v3`
   - Documented the complete schema, entity mappings, relationships, and indexes in [DATABASE.md](DATABASE.md)
+- **Milestone 4 — Customer Management**: Completed
+  - Implemented [CustomerController](backend/src/main/java/com/callflow/controller/CustomerController.java) endpoints: `POST /api/customers`, `GET /api/customers/{id}`, `PUT /api/customers/{id}`, and `GET /api/customers` (paginated search via `query`)
+  - Added `test` profile configuration in [application-test.yml](backend/src/test/resources/application-test.yml) and verified `CustomerServiceTest`, `CustomerRepositoryTest`, and `CustomerControllerTest` (`15` tests passing)
 
 ## Tech Stack (Backend Foundation)
 
@@ -72,7 +75,7 @@ CallFlow is an incrementally developed customer-support call management applicat
 1. **Milestone 1** — Workspace Audit and Foundation Verification *(Completed)*
 2. **Milestone 2** — Backend Build and Application Startup *(Completed)*
 3. **Milestone 3** — Database and Entity Layer *(Completed)*
-4. **Milestone 4** — Customer Management
+4. **Milestone 4** — Customer Management *(Completed)*
 5. **Milestone 5** — Agent Management
 6. **Milestone 6** — Call Management
 7. **Milestone 7** — Analytics
