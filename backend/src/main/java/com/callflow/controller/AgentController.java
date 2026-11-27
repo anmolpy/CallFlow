@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequestMapping("/api/agents")
+@PreAuthorize("hasAnyRole('ADMIN', 'AGENT')")
 @Tag(name = "Agents", description = "Support agent creation, lookup, search, and availability management")
 public class AgentController {
 
@@ -41,6 +43,7 @@ public class AgentController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a new support agent")
     public ResponseEntity<AgentResponse> createAgent(@Valid @RequestBody AgentRequest request) {
         AgentResponse created = agentService.createAgent(request);
@@ -58,6 +61,7 @@ public class AgentController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update an existing agent")
     public ResponseEntity<AgentResponse> updateAgent(
             @PathVariable Long id,

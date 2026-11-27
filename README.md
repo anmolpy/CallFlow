@@ -36,6 +36,9 @@ CallFlow is an incrementally developed customer-support call management applicat
 - **Milestone 8B — Apache JMeter Performance Testing**: Completed
   - Created 5 JMeter `5.6.3` load-test plans, CSV datasets, runner script (`performance-tests/run-all.ps1`), JTL results, HTML dashboard reports, and analysis in [performance-tests/README.md](performance-tests/README.md)
   - Executed all 5 scenarios against Spring Boot + `postgres:16-alpine`: `116,248` total samples with `0.00%` errors across concurrent call creation (`428.99/s`), customer search/retrieval (`970.66/s`), call assignment (`751.42/s`), full call lifecycle (`947.81/s`), and analytics (`585.57/s`)
+- **Milestone 9 — Authentication and Authorization**: Completed
+  - Enforced role-based authorization (`@PreAuthorize`) across controllers (`ADMIN`-only agent creation/updates via `POST /api/agents` and `PUT /api/agents/{id}`; `ADMIN` and `AGENT` access for operational endpoints)
+  - Verified Spring Security stateless JWT filter chain, `BCryptPasswordEncoder` password hashing, `401 Unauthorized` / `403 Forbidden` JSON error responses, and `JwtServiceTest`, `AuthServiceTest`, `DevDataSeederTest`, and `AuthAndSecurityIntegrationTest` (`65` Surefire tests + `1` Testcontainers IT passing)
 
 ## Tech Stack (Backend Foundation)
 
@@ -100,7 +103,7 @@ CallFlow is an incrementally developed customer-support call management applicat
 7. **Milestone 7** — Analytics *(Completed)*
 8. **Milestone 8** — Automated Testing and Quality *(Completed)*
 9. **Milestone 8B** — Apache JMeter Performance Testing *(Completed)*
-10. **Milestone 9** — Authentication and Authorization
+10. **Milestone 9** — Authentication and Authorization *(Completed)*
 11. **Milestone 10** — API Documentation
 12. **Milestone 11** — Frontend Foundation
 13. **Milestone 12** — Frontend Features
