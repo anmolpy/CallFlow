@@ -173,8 +173,8 @@ function StageRig({
 
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.12);
-    const isDesktop = size.width >= 900;
-    const baseFov = isDesktop ? 38 : 46;
+    const isSideBySide = size.width >= 1024;
+    const baseFov = isSideBySide ? 38 : 46;
 
     // Behind the white preloader overlay, step through every model on the real
     // full-viewport pipeline (including EffectComposer + transmission pass + OLED screen)
@@ -329,14 +329,14 @@ function StageRig({
     const targetElevation =
       THREE.MathUtils.lerp(orbitElevation, 0.02, heroBlend) + parallaxElevation;
 
-    const orbitDistance = isDesktop ? 4.1 : 5.05;
-    const heroDistance = isDesktop ? 3.85 : 5.65;
+    const orbitDistance = isSideBySide ? 4.1 : 5.05;
+    const heroDistance = isSideBySide ? (size.width >= 1280 ? 3.85 : 4.25) : (size.width >= 640 ? 6.1 : 5.75);
     const radius = THREE.MathUtils.lerp(orbitDistance, heroDistance, heroBlend);
 
     const orbitLookX = 0;
-    const heroLookX = isDesktop ? -0.92 : 0;
-    const orbitLookY = isDesktop ? -0.05 : -0.18;
-    const heroLookY = isDesktop ? 0.04 : -0.92;
+    const heroLookX = isSideBySide ? -0.94 : 0;
+    const orbitLookY = isSideBySide ? -0.05 : -0.18;
+    const heroLookY = isSideBySide ? 0.04 : (size.width >= 640 ? -1.05 : -0.95);
     const lookX = THREE.MathUtils.lerp(orbitLookX, heroLookX, heroBlend);
     const lookY = THREE.MathUtils.lerp(orbitLookY, heroLookY, heroBlend);
 

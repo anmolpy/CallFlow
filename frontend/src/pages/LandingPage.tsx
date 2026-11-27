@@ -397,7 +397,7 @@ export function LandingPage() {
               aria-label="CallFlow Hero"
               className="relative h-[225vh] w-full"
             >
-              <div className="sticky top-0 flex min-h-[100dvh] w-full items-end px-4 pb-16 pt-20 sm:items-center sm:px-10 sm:pb-12 sm:pt-20">
+              <div className="sticky top-0 flex min-h-[100dvh] w-full items-end px-4 pb-16 pt-20 sm:px-10 sm:pb-12 lg:items-center lg:pt-20">
                 <div className="mx-auto w-full max-w-7xl">
                   <motion.div
                     initial={false}
@@ -406,20 +406,20 @@ export function LandingPage() {
                       y: inHeroZone ? (1 - heroProgress) * 20 : 20,
                     }}
                     transition={{ duration: reducedMotion ? 0.15 : 0.3, ease: 'easeOut' }}
-                    className="pointer-events-auto w-full max-w-xl space-y-4 rounded-2xl border border-[#161211]/10 bg-white/95 p-4 backdrop-blur-md sm:space-y-5 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none lg:max-w-[540px]"
+                    className="pointer-events-auto mx-auto w-full max-w-xl space-y-4 rounded-2xl border border-[#161211]/10 bg-white/95 p-4 backdrop-blur-md sm:p-6 lg:mx-0 lg:max-w-[490px] lg:space-y-5 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none xl:max-w-[540px]"
                   >
                     <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-[#625957]">
                       Customer Support Call Orchestration
                     </p>
 
-                    <h1 className="text-3xl font-bold tracking-[-0.04em] text-[#161211] sm:text-5xl lg:text-[3.65rem] lg:leading-[1.03]">
+                    <h1 className="text-3xl font-bold tracking-[-0.04em] text-[#161211] sm:text-4xl lg:text-[3.35rem] lg:leading-[1.03] xl:text-[3.65rem]">
                       You do the calls,{' '}
                       <span className="font-serif italic font-normal text-blue-700">
                         we do the flow.
                       </span>
                     </h1>
 
-                    <p className="text-sm leading-relaxed text-[#625957] sm:text-[17px]">
+                    <p className="text-sm leading-relaxed text-[#625957] lg:text-[17px]">
                       Unified queue routing, complete customer call history, timestamped notes, and
                       real-time operational analytics—built for teams that refuse hold-music chaos.
                     </p>
@@ -427,7 +427,7 @@ export function LandingPage() {
                     <div className="flex flex-wrap items-center gap-3 pt-1">
                       <Link
                         to={isAuthenticated ? '/dashboard' : '/login'}
-                        className="inline-flex items-center gap-2 rounded-full bg-[#161211] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#2c2523] sm:py-3.5"
+                        className="inline-flex items-center gap-2 rounded-full bg-[#161211] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#2c2523] lg:py-3.5"
                       >
                         <span>
                           {isAuthenticated ? 'Launch Dashboard' : 'Sign In / Launch Console'}
@@ -436,13 +436,13 @@ export function LandingPage() {
                       </Link>
                       <a
                         href="#api-overview"
-                        className="inline-flex items-center gap-2 rounded-full border border-[#161211]/20 bg-white px-5 py-3 text-sm font-semibold text-[#161211] transition hover:border-[#161211]/45 sm:py-3.5"
+                        className="inline-flex items-center gap-2 rounded-full border border-[#161211]/20 bg-white px-5 py-3 text-sm font-semibold text-[#161211] transition hover:border-[#161211]/45 lg:py-3.5"
                       >
                         <span>Explore API Docs</span>
                       </a>
                     </div>
 
-                    <div className="hidden pt-1 sm:block">
+                    <div className="hidden pt-1 lg:block">
                       <CallFlowHeroPreview />
                     </div>
                   </motion.div>
@@ -452,8 +452,8 @@ export function LandingPage() {
           </div>
         </div>
 
-        {/* Mobile Hero Preview below the sticky 3D Hero fold */}
-        <div className="relative z-20 bg-white px-4 pb-8 pt-2 sm:hidden">
+        {/* Stacked Hero Preview below the sticky 3D Hero fold on viewports < 1024px */}
+        <div className="relative z-20 mx-auto max-w-xl bg-white px-4 pb-8 pt-2 sm:px-6 lg:hidden">
           <CallFlowHeroPreview />
         </div>
 
