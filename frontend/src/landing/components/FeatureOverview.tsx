@@ -1,5 +1,14 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Play } from 'lucide-react';
+import { API_BASE_URL } from '../../api';
+
+function resolveBackendRoot(): string {
+  if (/^https?:\/\//i.test(API_BASE_URL)) {
+    return API_BASE_URL.replace(/\/api$/i, '');
+  }
+  return '';
+}
 
 const PLATFORM_CAPABILITIES = [
   {
@@ -46,7 +55,51 @@ const PLATFORM_CAPABILITIES = [
   },
 ];
 
-export function FeatureOverview({ isAuthenticated }: { isAuthenticated: boolean }) {
+export function FeatureOverview({
+  isAuthenticated,
+  onTryDemo,
+}: {
+  isAuthenticated: boolean;
+  onTryDemo?: () => void;
+}) {
+  const [swaggerAvailable, setSwaggerAvailable] = useState(false);
+  const backendRoot = resolveBackendRoot();
+  const swaggerUiUrl = `${backendRoot}/swagger-ui/index.html`;
+  const swaggerConfigUrl = `${backendRoot}/v3/api-docs/swagger-config`;
+
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+
+    fetch(swaggerConfigUrl, {
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    })
+      .then(async (res) => {
+        const contentType = res.headers.get('content-type') ?? '';
+        if (!res.ok || !contentType.includes('application/json')) {
+          return false;
+        }
+        const payload = (await res.json()) as Record<string, unknown>;
+        return Boolean(payload && (payload.url || payload.configUrl || payload.urls));
+      })
+      .then((available) => {
+        if (!cancelled) {
+          setSwaggerAvailable(available);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSwaggerAvailable(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [swaggerConfigUrl]);
+
   return (
     <div className="relative z-20 border-t border-[#161211]/12 bg-white text-[#161211]">
       {/* Architectural Editorial Capabilities Ledger */}
@@ -108,28 +161,45 @@ export function FeatureOverview({ isAuthenticated }: { isAuthenticated: boolean 
               Ready for your support floor and automated integrations.
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-[#625957] sm:text-base">
-              Inspect live endpoints in Swagger UI or sign in to the React operations console to
-              manage queues, customer call history, agent states, and analytics.
+              {swaggerAvailable
+                ? 'Inspect live endpoints in Swagger UI or sign in to the React operations console to manage queues, customer call history, agent states, and analytics.'
+                : 'Launch the interactive demo or sign in to the React operations console to manage queues, customer call history, agent states, and analytics.'}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            {!isAuthenticated && onTryDemo && (
+              <button
+                type="button"
+                onClick={onTryDemo}
+                className="inline-flex items-center gap-2 rounded-full bg-[#161211] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#2c2523]"
+              >
+                <Play className="h-3.5 w-3.5 fill-current" />
+                <span>Try Demo Console</span>
+              </button>
+            )}
             <Link
               to={isAuthenticated ? '/dashboard' : '/login'}
-              className="inline-flex items-center gap-2 rounded-full bg-[#161211] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#2c2523]"
+              className={`inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold transition ${
+                isAuthenticated || !onTryDemo
+                  ? 'bg-[#161211] text-white hover:bg-[#2c2523]'
+                  : 'border border-[#161211]/20 bg-white text-[#161211] hover:border-[#161211]/45'
+              }`}
             >
               <span>{isAuthenticated ? 'Open Console' : 'Sign In to Console'}</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
-            <a
-              href="/swagger-ui/index.html"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-[#161211]/20 bg-white px-6 py-3.5 text-sm font-semibold text-[#161211] transition hover:border-[#161211]/45"
-            >
-              <span>Explore Swagger UI</span>
-              <ArrowUpRight className="h-4 w-4" />
-            </a>
+            {swaggerAvailable && (
+              <a
+                href={swaggerUiUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-[#161211]/20 bg-white px-6 py-3.5 text-sm font-semibold text-[#161211] transition hover:border-[#161211]/45"
+              >
+                <span>Explore Swagger UI</span>
+                <ArrowUpRight className="h-4 w-4" />
+              </a>
+            )}
           </div>
         </div>
       </section>

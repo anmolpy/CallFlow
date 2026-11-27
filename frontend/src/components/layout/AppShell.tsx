@@ -27,13 +27,14 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export function AppShell() {
-  const { user, logout } = useAuth();
+  const { user, isDemoMode, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = () => {
+    const wasDemo = isDemoMode;
     logout();
-    navigate('/login', { replace: true });
+    navigate(wasDemo ? '/' : '/login', { replace: true });
   };
 
   const renderNavLinks = () => (
@@ -131,6 +132,27 @@ export function AppShell() {
         )}
 
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          {isDemoMode && (
+            <div
+              role="status"
+              className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50/80 px-4 py-2.5 text-xs text-brand-900 sm:text-sm"
+            >
+              <div className="flex items-center gap-2">
+                <Badge tone="info">DEMO SANDBOX</Badge>
+                <span>
+                  Running with in-memory sample data—create calls, update statuses, and add notes
+                  for this session.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="font-semibold text-brand-700 underline-offset-2 hover:underline"
+              >
+                Exit Demo
+              </button>
+            </div>
+          )}
           <Outlet />
         </main>
       </div>

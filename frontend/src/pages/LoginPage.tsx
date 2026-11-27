@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, Phone } from 'lucide-react';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, Lock, Mail, Phone, Play } from 'lucide-react';
 import { ApiClientError } from '../api';
 import { Button, Card, ErrorBanner, LoadingSpinner } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
@@ -30,7 +30,7 @@ function resolveRedirectPath(state: LocationState | null): string {
 }
 
 export function LoginPage() {
-  const { isAuthenticated, isInitializing, login } = useAuth();
+  const { isAuthenticated, isInitializing, login, enterDemoMode } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -212,11 +212,36 @@ export function LoginPage() {
               {isSubmitting ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
+
+          <div className="mt-5 border-t border-slate-200 pt-5">
+            <p className="mb-3 text-center text-xs text-slate-500">
+              No credentials or backend running? Explore with interactive sample data:
+            </p>
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full py-2.5"
+              onClick={() => {
+                enterDemoMode();
+                navigate(redirectTo, { replace: true });
+              }}
+            >
+              <Play className="h-3.5 w-3.5 fill-current text-brand-600" />
+              Try Demo Console
+            </Button>
+          </div>
         </Card>
 
-        <p className="text-center text-xs text-slate-500">
-          Authenticated sessions use CallFlow JWT bearer tokens for agent and administrator access.
-        </p>
+        <div className="space-y-2 text-center text-xs text-slate-500">
+          <p>
+            Authenticated sessions use CallFlow JWT bearer tokens for agent and administrator access.
+          </p>
+          <p>
+            <Link to="/" className="font-medium text-brand-600 hover:text-brand-700">
+              ← Back to CallFlow overview
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

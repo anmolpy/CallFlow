@@ -1,8 +1,10 @@
 import type { ApiErrorResponse } from '../types/api';
+import { handleDemoApiRequest } from './demoSandbox';
 
 const RAW_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 export const API_BASE_URL = RAW_BASE_URL.replace(/\/+$/, '');
 export const TOKEN_STORAGE_KEY = 'callflow_access_token';
+export const DEMO_MODE_STORAGE_KEY = 'callflow_demo_mode';
 
 export class ApiClientError extends Error {
   status: number;
@@ -35,6 +37,18 @@ export function setStoredToken(token: string | null): void {
   }
 }
 
+export function isDemoModeEnabled(): boolean {
+  return window.localStorage.getItem(DEMO_MODE_STORAGE_KEY) === 'true';
+}
+
+export function setDemoModeEnabled(enabled: boolean): void {
+  if (enabled) {
+    window.localStorage.setItem(DEMO_MODE_STORAGE_KEY, 'true');
+  } else {
+    window.localStorage.removeItem(DEMO_MODE_STORAGE_KEY);
+  }
+}
+
 export function buildQueryString(
   params: Record<string, string | number | boolean | undefined | null>,
 ): string {
@@ -55,6 +69,11 @@ interface RequestOptions extends Omit<RequestInit, 'body'> {
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { body, skipAuth = false, headers: customHeaders, ...rest } = options;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+
+  if (!skipAuth && isDemoModeEnabled()) {
+    return handleDemoApiRequest<T>(normalizedPath, rest.method ?? 'GET', body);
+  }
 
   const headers = new Headers(customHeaders);
   headers.set('Accept', 'application/json');
@@ -68,7 +87,6 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     }
   }
 
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   const response = await fetch(`${API_BASE_URL}${normalizedPath}`, {
     ...rest,
     headers,

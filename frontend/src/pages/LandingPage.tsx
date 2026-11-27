@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence, MotionConfig, motion } from 'motion/react';
-import { ArrowRight, ChevronDown, Phone, SkipForward } from 'lucide-react';
+import { ArrowRight, ChevronDown, Phone, Play, SkipForward } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { CallFlowHeroPreview } from '../landing/components/CallFlowHeroPreview';
 import { FeatureOverview } from '../landing/components/FeatureOverview';
@@ -15,7 +15,8 @@ import {
 import { usePrefersReducedMotion } from '../landing/usePrefersReducedMotion';
 
 export function LandingPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, enterDemoMode } = useAuth();
+  const navigate = useNavigate();
   const reducedMotion = usePrefersReducedMotion();
 
   const trackRef = useRef<HTMLDivElement>(null);
@@ -141,6 +142,11 @@ export function LandingPage() {
     scrollToProgress(1);
   }, [scrollToProgress]);
 
+  const handleTryDemo = useCallback(() => {
+    enterDemoMode();
+    navigate('/dashboard');
+  }, [enterDemoMode, navigate]);
+
   const currentEra = TELEPHONE_ERAS[activeEraIndex];
   const progressPercent = stageReady
     ? 100
@@ -217,15 +223,26 @@ export function LandingPage() {
               </a>
             </nav>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               {!inHeroZone && (
                 <button
                   type="button"
                   onClick={handleSkipToHero}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[#161211]/15 bg-white px-3.5 py-1.5 text-xs font-medium text-[#161211] transition hover:border-[#161211]/40 sm:text-sm"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#161211]/15 bg-white px-3 py-1.5 text-xs font-medium text-[#161211] transition hover:border-[#161211]/40 sm:px-3.5 sm:text-sm"
                 >
                   <SkipForward className="h-3.5 w-3.5 text-blue-700" />
-                  <span>Skip to CallFlow</span>
+                  <span className="hidden sm:inline">Skip to CallFlow</span>
+                  <span className="sm:hidden">Skip</span>
+                </button>
+              )}
+              {!isAuthenticated && (
+                <button
+                  type="button"
+                  onClick={handleTryDemo}
+                  className="hidden items-center gap-1.5 rounded-full border border-blue-700/25 bg-blue-50/70 px-3.5 py-1.5 text-xs font-semibold text-blue-800 transition hover:bg-blue-100/80 md:inline-flex sm:text-sm"
+                >
+                  <Play className="h-3 w-3 fill-current" />
+                  <span>Try Demo Console</span>
                 </button>
               )}
               <Link
@@ -425,12 +442,26 @@ export function LandingPage() {
                     </p>
 
                     <div className="flex flex-wrap items-center gap-3 pt-1">
+                      {!isAuthenticated && (
+                        <button
+                          type="button"
+                          onClick={handleTryDemo}
+                          className="inline-flex items-center gap-2 rounded-full bg-[#161211] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#2c2523] lg:py-3.5"
+                        >
+                          <Play className="h-3.5 w-3.5 fill-current" />
+                          <span>Try Demo Console</span>
+                        </button>
+                      )}
                       <Link
                         to={isAuthenticated ? '/dashboard' : '/login'}
-                        className="inline-flex items-center gap-2 rounded-full bg-[#161211] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#2c2523] lg:py-3.5"
+                        className={`inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition lg:py-3.5 ${
+                          isAuthenticated
+                            ? 'bg-[#161211] px-6 text-white hover:bg-[#2c2523]'
+                            : 'border border-[#161211]/20 bg-white text-[#161211] hover:border-[#161211]/45'
+                        }`}
                       >
                         <span>
-                          {isAuthenticated ? 'Launch Dashboard' : 'Sign In / Launch Console'}
+                          {isAuthenticated ? 'Launch Dashboard' : 'Sign In'}
                         </span>
                         <ArrowRight className="h-4 w-4" />
                       </Link>
@@ -458,7 +489,7 @@ export function LandingPage() {
         </div>
 
         {/* Below-the-fold CallFlow Capabilities & API Overview */}
-        <FeatureOverview isAuthenticated={isAuthenticated} />
+        <FeatureOverview isAuthenticated={isAuthenticated} onTryDemo={handleTryDemo} />
       </div>
     </MotionConfig>
   );
