@@ -30,10 +30,9 @@ CallFlow is an incrementally developed customer-support call management applicat
   - Verified [AnalyticsController](backend/src/main/java/com/callflow/controller/AnalyticsController.java) endpoints (`GET /api/analytics/overview`, `GET /api/analytics/calls-by-status`, `GET /api/analytics/agent-performance`), [AnalyticsService](backend/src/main/java/com/callflow/service/AnalyticsService.java), and database-side aggregations in [CallRepository](backend/src/main/java/com/callflow/repository/CallRepository.java)
   - Added and verified `AnalyticsServiceTest`, `AnalyticsRepositoryTest`, and `AnalyticsControllerTest` (`51` total backend tests passing)
 - **Milestone 8 — Automated Testing and Quality**: Completed
-  - Added [PaginationValidatorTest](backend/src/test/java/com/callflow/validation/PaginationValidatorTest.java), [CallRepositoryTest](backend/src/test/java/com/callflow/repository/CallRepositoryTest.java), and [CallFlowPostgresIT](backend/src/test/java/com/callflow/integration/CallFlowPostgresIT.java) (`@Testcontainers(disabledWithoutDocker = true)` with `@ServiceConnection`)
+  - Added [PaginationValidatorTest](backend/src/test/java/com/callflow/validation/PaginationValidatorTest.java), [CallRepositoryTest](backend/src/test/java/com/callflow/repository/CallRepositoryTest.java), and [CallFlowPostgresIT](backend/src/test/java/com/callflow/integration/CallFlowPostgresIT.java) (`PostgreSQLContainer<>("postgres:16-alpine")` with `@ServiceConnection` and [docker-java.properties](backend/src/test/resources/docker-java.properties) `api.version=1.44` for Docker Engine 29+ compatibility)
   - Simplified call lifecycle timestamp/duration handling in [CallService](backend/src/main/java/com/callflow/service/CallService.java) via shared `applyLifecycleState` helper
-  - Verified `mvnw.cmd -o verify`: `55` Surefire unit/integration tests passing (`0` failures, `0` errors) and JaCoCo coverage gate (`>= 80%`) met (`98.6%` service, `98.8%` mapper, `95.6%` validation line coverage)
-  - *Note*: `CallFlowPostgresIT` is skipped automatically when Docker is unavailable (`disabledWithoutDocker = true`) while local PostgreSQL integration tests verify all endpoints and queries against PostgreSQL `18.4`
+  - Verified `mvnw.cmd -o verify`: `55` Surefire tests + `1` Testcontainers Failsafe integration test (`CallFlowPostgresIT`) passing (`0` failures, `0` errors, `0` skipped) and JaCoCo coverage gate (`>= 80%`) met (`98.6%` service, `98.8%` mapper, `95.6%` validation line coverage)
 
 ## Tech Stack (Backend Foundation)
 
@@ -46,6 +45,7 @@ CallFlow is an incrementally developed customer-support call management applicat
 
 - **Java 21** (`JAVA_HOME` pointing to your JDK 21 installation, e.g. `C:\Program Files\Java\jdk-21`)
 - **PostgreSQL** running locally (default `localhost:5432`)
+- **Docker Desktop** (for Testcontainers integration tests `*IT.java` via `mvnw.cmd verify`)
 
 ## Local Setup & Running the Backend
 
