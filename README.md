@@ -9,7 +9,12 @@ CallFlow is an incrementally developed customer-support call management applicat
   - Official Apache Maven Wrapper (`3.9.9`) configured in `backend/`
   - Java 21 compilation and Spring Boot `3.4.5` packaging verified
   - `.env` auto-loading configured in `backend/src/main/resources/application.yml`
-  - PostgreSQL `18.4` connectivity, Flyway migrations (`V1__init_schema.sql`, `V2__dev_seed_data.sql`), Hibernate schema validation, dev user seeding, and `/actuator/health` startup verified
+  - PostgreSQL `18.4` connectivity, Flyway migrations, Hibernate schema validation, dev user seeding, and `/actuator/health` startup verified
+- **Milestone 3 — Database and Entity Layer**: Completed
+  - Verified all 5 JPA entities (`User`, `Customer`, `Agent`, `Call`, `CallNote`) and `BaseTimestampedEntity` against PostgreSQL `18.4` (`ddl-auto: validate`)
+  - Verified foreign keys, unique constraints, and check constraints (`chk_users_role`, `chk_agents_availability`, `chk_calls_status`, `chk_calls_duration_nonneg`, `chk_calls_timestamps`, `chk_calls_completed_timestamps`)
+  - Added [V3__add_supporting_indexes.sql](backend/src/main/resources/db/migration/V3__add_supporting_indexes.sql) (`idx_users_email_lower`, `idx_agents_email_lower`, `idx_call_notes_author_agent_id`) and verified Flyway migration to `v3`
+  - Documented the complete schema, entity mappings, relationships, and indexes in [DATABASE.md](DATABASE.md)
 
 ## Tech Stack (Backend Foundation)
 
@@ -66,7 +71,7 @@ CallFlow is an incrementally developed customer-support call management applicat
 
 1. **Milestone 1** — Workspace Audit and Foundation Verification *(Completed)*
 2. **Milestone 2** — Backend Build and Application Startup *(Completed)*
-3. **Milestone 3** — Database and Entity Layer
+3. **Milestone 3** — Database and Entity Layer *(Completed)*
 4. **Milestone 4** — Customer Management
 5. **Milestone 5** — Agent Management
 6. **Milestone 6** — Call Management
