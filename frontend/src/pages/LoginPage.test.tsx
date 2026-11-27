@@ -64,25 +64,47 @@ describe('LoginPage', () => {
   });
 
   it('authenticates, stores JWT token, and redirects to original protected destination', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          accessToken: 'jwt-token-123',
-          tokenType: 'Bearer',
-          expiresInMs: 3600000,
-          user: {
-            id: 1,
-            email: 'admin@callflow.local',
-            fullName: 'CallFlow Admin',
-            role: 'ADMIN',
+    const fetchMock = vi.fn((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url === '/api/auth/login') {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              accessToken: 'jwt-token-123',
+              tokenType: 'Bearer',
+              expiresInMs: 3600000,
+              user: {
+                id: 1,
+                email: 'admin@callflow.local',
+                fullName: 'CallFlow Admin',
+                role: 'ADMIN',
+              },
+            }),
+            {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          ),
+        );
+      }
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            content: [],
+            page: 0,
+            size: 10,
+            totalElements: 0,
+            totalPages: 0,
+            first: true,
+            last: true,
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
           },
-        }),
-        {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        },
-      ),
-    );
+        ),
+      );
+    });
     vi.stubGlobal('fetch', fetchMock);
     const user = userEvent.setup();
 

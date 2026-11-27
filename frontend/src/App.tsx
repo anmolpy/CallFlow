@@ -1,10 +1,13 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
+import { AgentsPage } from './pages/AgentsPage';
+import { CallDetailPage } from './pages/CallDetailPage';
+import { CallsPage } from './pages/CallsPage';
+import { CustomerDetailPage } from './pages/CustomerDetailPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
-import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 
 export function App() {
@@ -16,66 +19,10 @@ export function App() {
         <Route element={<AppShell />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/customers" element={<CustomersPage />} />
-          <Route
-            path="/customers/:id"
-            element={
-              <PlaceholderPage
-                title="Customer Details"
-                description="Customer profile and full chronological call history."
-                routePath="/customers/:id"
-                plannedCapabilities={[
-                  'Fetch customer profile via customersApi.getById(id)',
-                  'Display paginated call timeline via customersApi.getCalls(id)',
-                  'Initiate or edit customer interactions',
-                ]}
-              />
-            }
-          />
-          <Route
-            path="/calls"
-            element={
-              <PlaceholderPage
-                title="Calls"
-                description="Call queue management, multi-criteria filtering, and lifecycle actions."
-                routePath="/calls"
-                plannedCapabilities={[
-                  'Filter calls by status, agent, customer, search, and date range via callsApi.list()',
-                  'Create calls via callsApi.create()',
-                  'Assign calls, transition statuses, and add operational notes',
-                ]}
-              />
-            }
-          />
-          <Route
-            path="/calls/:id"
-            element={
-              <PlaceholderPage
-                title="Call Details"
-                description="Detailed call record, assignment controls, and structured activity timeline."
-                routePath="/calls/:id"
-                plannedCapabilities={[
-                  'Inspect call metadata and audit trail via callsApi.getById(id)',
-                  'Change status with valid workflow transitions via callsApi.updateStatus()',
-                  'Assign agents and post call notes via callsApi.assign() and callsApi.addNote()',
-                ]}
-              />
-            }
-          />
-          <Route
-            path="/agents"
-            element={
-              <PlaceholderPage
-                title="Agents"
-                description="Agent roster, availability status, and admin user management."
-                routePath="/agents"
-                plannedCapabilities={[
-                  'Browse agent directory and filter by availability via agentsApi.list()',
-                  'Toggle active/availability status with role-aware controls',
-                  'Admin agent creation via agentsApi.create()',
-                ]}
-              />
-            }
-          />
+          <Route path="/customers/:id" element={<CustomerDetailPage />} />
+          <Route path="/calls" element={<CallsPage />} />
+          <Route path="/calls/:id" element={<CallDetailPage />} />
+          <Route path="/agents" element={<AgentsPage />} />
         </Route>
       </Route>
 

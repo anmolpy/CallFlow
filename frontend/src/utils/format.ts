@@ -1,6 +1,33 @@
 import type { BadgeTone } from '../components/ui';
 import type { AgentAvailabilityStatus, CallStatus } from '../types/api';
 
+export const ALL_CALL_STATUSES: CallStatus[] = [
+  'QUEUED',
+  'IN_PROGRESS',
+  'COMPLETED',
+  'MISSED',
+  'CANCELLED',
+];
+
+export const ALL_AGENT_STATUSES: AgentAvailabilityStatus[] = [
+  'AVAILABLE',
+  'BUSY',
+  'AWAY',
+  'OFFLINE',
+];
+
+export const CALL_ALLOWED_TRANSITIONS: Record<CallStatus, CallStatus[]> = {
+  QUEUED: ['IN_PROGRESS', 'MISSED', 'CANCELLED'],
+  IN_PROGRESS: ['COMPLETED', 'MISSED', 'CANCELLED'],
+  COMPLETED: [],
+  MISSED: [],
+  CANCELLED: [],
+};
+
+export function isTerminalCallStatus(status: CallStatus): boolean {
+  return CALL_ALLOWED_TRANSITIONS[status].length === 0;
+}
+
 export const CALL_STATUS_META: Record<
   CallStatus,
   { label: string; tone: BadgeTone; barClass: string }
