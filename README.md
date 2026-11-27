@@ -1,6 +1,6 @@
 # CallFlow
 
-CallFlow is an incrementally developed customer-support call management application built with Java 21, Spring Boot 3, PostgreSQL, Flyway, and Spring Security (with React + TypeScript + Vite frontend and Docker/CI planned in upcoming milestones).
+CallFlow is a full-stack customer-support call management platform built with Java 21, Spring Boot 3, PostgreSQL, Flyway, Spring Security (JWT), OpenAPI 3, React + TypeScript + Vite + Tailwind CSS, Docker Compose, and GitHub Actions CI/CD.
 
 ## Current Status
 
@@ -57,6 +57,39 @@ CallFlow is an incrementally developed customer-support call management applicat
   - Added multi-stage container builds in [backend/Dockerfile](backend/Dockerfile) (`eclipse-temurin:21-jdk-alpine` -> `21-jre-alpine` non-root user + `/actuator/health` healthcheck) and [frontend/Dockerfile](frontend/Dockerfile) (`node:22-alpine` -> `nginx:1.27-alpine` with SPA fallback and `/api/` reverse proxy in [nginx.conf](frontend/nginx.conf)), plus `.dockerignore` files
   - Added full-stack orchestration in [docker-compose.yml](docker-compose.yml) (`postgres:16-alpine`, `backend`, `frontend`) with healthcheck ordering and verified live container startup (`http://localhost:3000` -> `200`, `http://localhost:8080/actuator/health` -> `UP`, proxied JWT `/api/auth/login` & `/api/analytics/overview`)
   - Configured GitHub Actions CI in [ci.yml](.github/workflows/ci.yml) (`backend` `./mvnw verify`, `frontend` tests/typecheck/build, and `docker compose` validation & image build)
+- **Milestone 14 — Documentation and Final Review**: Completed
+  - Audited repository files, `.gitignore` rules, OpenAPI/database/performance docs ([DATABASE.md](DATABASE.md), [performance-tests/README.md](performance-tests/README.md)), and finalized [README.md](README.md) with repository layout, API summary, verification commands, and deployment guide
+  - Verified full backend suite (`mvnw.cmd verify` unit + Testcontainers IT + JaCoCo coverage gate), frontend suite (`npm test`, `npm run typecheck`, `npm run build`), and `docker compose config -q`
+
+## Architecture & Repository Layout
+
+```text
+CallFlow/
+├── backend/                 # Spring Boot 3 REST API, Flyway migrations, Security, Tests, Dockerfile
+├── frontend/                # React + TypeScript + Vite + Tailwind app, Vitest suite, Nginx Dockerfile
+├── performance-tests/       # Apache JMeter 5.6.3 plans, datasets, runner, HTML reports, analysis
+├── .github/workflows/       # GitHub Actions CI workflow (backend, frontend, docker build)
+├── docker-compose.yml       # Full-stack PostgreSQL + Backend + Frontend orchestration
+├── DATABASE.md              # PostgreSQL schema, JPA entity mappings, constraints, and indexes
+└── README.md                # Project overview, setup instructions, and milestone records
+```
+
+## API & Security Overview
+
+All endpoints except `/api/auth/login`, `/actuator/health`, `/swagger-ui/**`, and `/v3/api-docs/**` require a JWT bearer token (`Authorization: Bearer <token>`). Operational endpoints allow `ADMIN` and `AGENT` roles, while `POST /api/agents` and `PUT /api/agents/{id}` require `ADMIN`.
+
+| Area | Endpoints | Notes |
+| --- | --- | --- |
+| Auth | `POST /api/auth/login`, `GET /api/auth/me` | Stateless JWT login and current user profile |
+| Customers | `POST /api/customers`, `GET /api/customers/{id}`, `PUT /api/customers/{id}`, `GET /api/customers`, `GET /api/customers/{id}/calls` | Search, pagination, and per-customer call history |
+| Agents | `POST /api/agents`, `GET /api/agents/{id}`, `PUT /api/agents/{id}`, `PATCH /api/agents/{id}/availability`, `GET /api/agents`, `GET /api/agents/{id}/calls` | Agent roster (`POST`/`PUT` `ADMIN`-only) & live availability updates |
+| Calls | `POST /api/calls`, `GET /api/calls/{id}`, `GET /api/calls`, `PATCH /api/calls/{id}/assign`, `PATCH /api/calls/{id}/status`, `POST /api/calls/{id}/notes` | Lifecycle validation (`QUEUED` -> `IN_PROGRESS` -> `COMPLETED`/`MISSED`/`CANCELLED`), duration tracking, and notes |
+| Analytics | `GET /api/analytics/overview`, `GET /api/analytics/calls-by-status`, `GET /api/analytics/agent-performance` | Aggregate call volume, completion metrics, and per-agent throughput |
+
+Additional project documentation:
+- **Database Schema & JPA Mapping**: [DATABASE.md](DATABASE.md)
+- **Interactive API Docs (when backend is running)**: `http://localhost:8080/swagger-ui/index.html` and `http://localhost:8080/v3/api-docs`
+- **Load & Performance Testing**: [performance-tests/README.md](performance-tests/README.md)
 
 ## Tech Stack
 
@@ -171,4 +204,4 @@ CallFlow is an incrementally developed customer-support call management applicat
 12. **Milestone 11** — Frontend Foundation *(Completed)*
 13. **Milestone 12** — Frontend Features *(Completed)*
 14. **Milestone 13** — Docker and CI/CD *(Completed)*
-15. **Milestone 14** — Documentation and Final Review
+15. **Milestone 14** — Documentation and Final Review *(Completed)*
