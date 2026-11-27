@@ -39,6 +39,9 @@ CallFlow is an incrementally developed customer-support call management applicat
 - **Milestone 9 — Authentication and Authorization**: Completed
   - Enforced role-based authorization (`@PreAuthorize`) across controllers (`ADMIN`-only agent creation/updates via `POST /api/agents` and `PUT /api/agents/{id}`; `ADMIN` and `AGENT` access for operational endpoints)
   - Verified Spring Security stateless JWT filter chain, `BCryptPasswordEncoder` password hashing, `401 Unauthorized` / `403 Forbidden` JSON error responses, and `JwtServiceTest`, `AuthServiceTest`, `DevDataSeederTest`, and `AuthAndSecurityIntegrationTest` (`65` Surefire tests + `1` Testcontainers IT passing)
+- **Milestone 10 — API Documentation**: Completed
+  - Enhanced [OpenApiConfig](backend/src/main/java/com/callflow/config/OpenApiConfig.java), controllers, [ApiErrorResponse](backend/src/main/java/com/callflow/exception/ApiErrorResponse.java), and request/response DTOs with OpenAPI 3 schemas, parameter descriptions, JWT bearer opt-out on `/api/auth/login`, and `400`/`401`/`403`/`404`/`409`/`422` error responses
+  - Verified [OpenApiDocumentationTest](backend/src/test/java/com/callflow/config/OpenApiDocumentationTest.java) (`67` Surefire tests + `1` Testcontainers IT passing) and live Swagger UI (`/swagger-ui/index.html` -> `200`, `/v3/api-docs` -> `17` paths)
 
 ## Tech Stack (Backend Foundation)
 
@@ -104,7 +107,7 @@ CallFlow is an incrementally developed customer-support call management applicat
 8. **Milestone 8** — Automated Testing and Quality *(Completed)*
 9. **Milestone 8B** — Apache JMeter Performance Testing *(Completed)*
 10. **Milestone 9** — Authentication and Authorization *(Completed)*
-11. **Milestone 10** — API Documentation
+11. **Milestone 10** — API Documentation *(Completed)*
 12. **Milestone 11** — Frontend Foundation
 13. **Milestone 12** — Frontend Features
 14. **Milestone 13** — Docker and CI/CD

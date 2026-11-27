@@ -6,12 +6,19 @@ import com.callflow.dto.CallSummaryResponse;
 import com.callflow.dto.PageResponse;
 import com.callflow.dto.UpdateAgentAvailabilityRequest;
 import com.callflow.entity.AgentAvailabilityStatus;
+import com.callflow.exception.ApiErrorResponse;
 import com.callflow.service.AgentService;
 import com.callflow.service.CallService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -44,7 +51,14 @@ public class AgentController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Create a new support agent")
+    @Operation(summary = "Create a new support agent (ADMIN only)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Agent created"),
+            @ApiResponse(responseCode = "400", description = "Invalid agent payload",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Agent email already exists",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<AgentResponse> createAgent(@Valid @RequestBody AgentRequest request) {
         AgentResponse created = agentService.createAgent(request);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -56,40 +70,76 @@ public class AgentController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Retrieve an agent by ID")
-    public ResponseEntity<AgentResponse> getAgentById(@PathVariable Long id) {
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Agent found"),
+            @ApiResponse(responseCode = "404", description = "Agent not found",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<AgentResponse> getAgentById(
+            @Parameter(description = "Agent ID", example = "1") @PathVariable Long id) {
         return ResponseEntity.ok(agentService.getAgentById(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Update an existing agent")
+    @Operation(summary = "Update an existing agent (ADMIN only)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Agent updated"),
+            @ApiResponse(responseCode = "400", description = "Invalid agent update payload",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Agent not found",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Updated email conflicts with another agent",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<AgentResponse> updateAgent(
-            @PathVariable Long id,
+            @Parameter(description = "Agent ID", example = "1") @PathVariable Long id,
             @Valid @RequestBody AgentRequest request) {
         return ResponseEntity.ok(agentService.updateAgent(id, request));
     }
 
     @PatchMapping("/{id}/availability")
     @Operation(summary = "Update an agent's availability status")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Availability updated"),
+            @ApiResponse(responseCode = "400", description = "Invalid availability payload",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Agent not found",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<AgentResponse> updateAvailability(
-            @PathVariable Long id,
+            @Parameter(description = "Agent ID", example = "1") @PathVariable Long id,
             @Valid @RequestBody UpdateAgentAvailabilityRequest request) {
         return ResponseEntity.ok(agentService.updateAvailability(id, request.availabilityStatus()));
     }
 
     @GetMapping
     @Operation(summary = "List and search agents with optional availability filtering and pagination")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Paginated agent list"),
+            @ApiResponse(responseCode = "400", description = "Invalid filter or sort parameter",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<PageResponse<AgentResponse>> listAgents(
+            @Parameter(description = "Optional search term matching name or email")
             @RequestParam(required = false) String query,
+            @Parameter(description = "Optional availability status filter")
             @RequestParam(required = false) AgentAvailabilityStatus availabilityStatus,
+            @ParameterObject
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(agentService.listAgents(query, availabilityStatus, pageable));
     }
 
     @GetMapping("/{id}/calls")
     @Operation(summary = "Retrieve paginated calls assigned to an agent")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Paginated agent call history"),
+            @ApiResponse(responseCode = "404", description = "Agent not found",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<PageResponse<CallSummaryResponse>> getAgentCalls(
-            @PathVariable Long id,
+            @Parameter(description = "Agent ID", example = "1") @PathVariable Long id,
+            @ParameterObject
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(callService.getAgentCalls(id, pageable));
     }
