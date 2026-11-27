@@ -53,12 +53,17 @@ CallFlow is an incrementally developed customer-support call management applicat
   - **Customer Management & Details**: [CustomersPage.tsx](frontend/src/pages/CustomersPage.tsx), [CustomerDetailPage.tsx](frontend/src/pages/CustomerDetailPage.tsx), [CustomerFormModal.tsx](frontend/src/components/customers/CustomerFormModal.tsx), [Modal.tsx](frontend/src/components/ui/Modal.tsx), [PaginationBar.tsx](frontend/src/components/ui/PaginationBar.tsx) (`4` tests) — paginated directory, search/sort controls, create/edit customer validation & `409` conflict handling, customer profile & call history timeline
   - **Call Management & Details**: [CallsPage.tsx](frontend/src/pages/CallsPage.tsx), [CallDetailPage.tsx](frontend/src/pages/CallDetailPage.tsx), [CreateCallModal.tsx](frontend/src/components/calls/CreateCallModal.tsx) (`2` tests) — multi-filter call queue (search, status, agent, date range, sort), call creation, agent assignment, lifecycle status transitions, and chronological notes timeline
   - **Agent Management**: [AgentsPage.tsx](frontend/src/pages/AgentsPage.tsx), [AgentFormModal.tsx](frontend/src/components/agents/AgentFormModal.tsx) (`2` tests) — agent search, availability filtering, live availability updates, and `ADMIN`-gated agent creation/editing (`17` total passing frontend tests across `7` Vitest suites)
+- **Milestone 13 — Docker and CI/CD**: Completed
+  - Added multi-stage container builds in [backend/Dockerfile](backend/Dockerfile) (`eclipse-temurin:21-jdk-alpine` -> `21-jre-alpine` non-root user + `/actuator/health` healthcheck) and [frontend/Dockerfile](frontend/Dockerfile) (`node:22-alpine` -> `nginx:1.27-alpine` with SPA fallback and `/api/` reverse proxy in [nginx.conf](frontend/nginx.conf)), plus `.dockerignore` files
+  - Added full-stack orchestration in [docker-compose.yml](docker-compose.yml) (`postgres:16-alpine`, `backend`, `frontend`) with healthcheck ordering and verified live container startup (`http://localhost:3000` -> `200`, `http://localhost:8080/actuator/health` -> `UP`, proxied JWT `/api/auth/login` & `/api/analytics/overview`)
+  - Configured GitHub Actions CI in [ci.yml](.github/workflows/ci.yml) (`backend` `./mvnw verify`, `frontend` tests/typecheck/build, and `docker compose` validation & image build)
 
 ## Tech Stack
 
 - **Backend**: Java 21, Maven Wrapper (`mvnw` / `mvnw.cmd`), Spring Boot `3.4.5`, PostgreSQL, Spring Data JPA / Hibernate, Flyway, Spring Security, JJWT `0.12.6`, Springdoc OpenAPI `2.8.5`
 - **Frontend**: React `18.3`, TypeScript `5.6`, Vite `6`, Tailwind CSS `3.4`, React Router `6`, Lucide icons
-- **Testing & Quality**: JUnit 5, Mockito, Testcontainers, JaCoCo `0.8.12`, Apache JMeter `5.6.3`
+- **Testing & Quality**: JUnit 5, Mockito, Testcontainers, JaCoCo `0.8.12`, Apache JMeter `5.6.3`, Vitest, Testing Library
+- **Containers & CI/CD**: Docker, Docker Compose, Nginx `1.27`, GitHub Actions
 
 ## Prerequisites
 
@@ -129,6 +134,27 @@ CallFlow is an incrementally developed customer-support call management applicat
    npm run build
    ```
 
+## Full-Stack Setup with Docker Compose
+
+1. **Copy `.env.example` to `.env`** (or use defaults for local evaluation):
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+
+2. **Build and start PostgreSQL, Spring Boot backend, and Nginx frontend**:
+   ```powershell
+   docker compose up --build -d
+   ```
+   - **Frontend App**: `http://localhost:3000` (Nginx serves the React SPA and proxies `/api/*` to `backend:8080`)
+   - **Backend Health**: `http://localhost:8080/actuator/health`
+   - **Swagger UI**: `http://localhost:8080/swagger-ui/index.html`
+   - **PostgreSQL Host Port**: `5433` (configurable via `DOCKER_DB_PORT`)
+
+3. **Stop and clean up**:
+   ```powershell
+   docker compose down
+   ```
+
 ## Development Roadmap
 
 1. **Milestone 1** — Workspace Audit and Foundation Verification *(Completed)*
@@ -144,5 +170,5 @@ CallFlow is an incrementally developed customer-support call management applicat
 11. **Milestone 10** — API Documentation *(Completed)*
 12. **Milestone 11** — Frontend Foundation *(Completed)*
 13. **Milestone 12** — Frontend Features *(Completed)*
-14. **Milestone 13** — Docker and CI/CD
+14. **Milestone 13** — Docker and CI/CD *(Completed)*
 15. **Milestone 14** — Documentation and Final Review
