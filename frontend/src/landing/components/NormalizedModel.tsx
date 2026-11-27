@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { EraConfig } from '../eras';
 import { createCallFlowScreenTexture, type CallFlowCanvasHandle } from './CallFlowScreenTexture';
 
 interface NormalizedModelProps {
   era: EraConfig;
+  visible?: boolean;
   targetBoundingRadius?: number;
   heroBlendRef: React.MutableRefObject<number>;
 }
@@ -15,10 +16,13 @@ const TARGET_BOUNDING_RADIUS = 1.15;
 
 export function NormalizedModel({
   era,
+  visible = true,
   targetBoundingRadius = TARGET_BOUNDING_RADIUS,
   heroBlendRef,
 }: NormalizedModelProps) {
   const gltf = useGLTF(era.modelUrl);
+  const { gl, scene, camera } = useThree();
+  const groupRef = useRef<THREE.Group>(null);
   const screenTextureRef = useRef<CallFlowCanvasHandle | null>(null);
   const originalScreenMapsRef = useRef<{
     material: THREE.MeshStandardMaterial;
@@ -138,6 +142,26 @@ export function NormalizedModel({
     };
   }, [era.id, normalizedScene]);
 
+  // Pre-compile WebGL shaders & upload textures in the background when mounted hidden
+  useEffect(() => {
+    if (visible) return;
+    const group = groupRef.current;
+    if (!group) return;
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      if (cancelled || !groupRef.current) return;
+      void gl.compileAsync(groupRef.current, camera, scene).catch(() => {
+        // Fallback if compileAsync is interrupted during unmount
+      });
+    }, 60);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [visible, normalizedScene, gl, camera, scene]);
+
   useEffect(() => {
     const mats = clonedMaterialsRef.current;
     return () => {
@@ -148,7 +172,7 @@ export function NormalizedModel({
   }, [normalizedScene]);
 
   useFrame((state) => {
-    if (era.id !== 'era-5') return;
+    if (!visible || era.id !== 'era-5') return;
     const orig = originalScreenMapsRef.current;
     const handle = screenTextureRef.current;
     if (!orig || !handle) return;
@@ -167,7 +191,7 @@ export function NormalizedModel({
   });
 
   return (
-    <group rotation={[era.pitchOffset, era.yawOffset, era.rollOffset]}>
+    <group ref={groupRef} visible={visible} rotation={[era.pitchOffset, era.yawOffset, era.rollOffset]}>
       <group scale={uniformScale}>
         <primitive object={normalizedScene} position={offset} />
       </group>

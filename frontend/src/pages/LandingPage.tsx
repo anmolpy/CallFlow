@@ -26,11 +26,11 @@ export function LandingPage() {
   const [inHeroZone, setInHeroZone] = useState<boolean>(false);
   const [heroProgress, setHeroProgress] = useState<number>(0);
 
-  // Progressively preload Eras 2–5 in the background after initial mount
+  // Progressively preload Eras 2–5 in the background right after initial paint
   useEffect(() => {
     const timer = window.setTimeout(() => {
       preloadRemainingModels();
-    }, 300);
+    }, 120);
     return () => {
       window.clearTimeout(timer);
     };

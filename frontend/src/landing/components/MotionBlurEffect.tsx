@@ -70,6 +70,7 @@ export function MotionBlurEffect({ blurStrengthRef, spinDirectionRef }: MotionBl
   const composerRef = useRef<EffectComposer | null>(null);
   const renderPassRef = useRef<RenderPass | null>(null);
   const blurPassRef = useRef<ShaderPass | null>(null);
+  const hasWarmedRef = useRef<boolean>(false);
 
   const composerResources = useMemo(() => {
     const target = new THREE.WebGLRenderTarget(
@@ -121,6 +122,15 @@ export function MotionBlurEffect({ blurStrengthRef, spinDirectionRef }: MotionBl
     const blur = blurStrengthRef.current;
     const composer = composerRef.current;
     const blurPass = blurPassRef.current;
+
+    // Warm the MSAA HalfFloatType render target + post-processing shaders once on startup
+    // with uBlurStrength = 0 so the first whip-spin never hitches.
+    if (!hasWarmedRef.current && composer && blurPass) {
+      hasWarmedRef.current = true;
+      blurPass.uniforms.uBlurStrength.value = 0;
+      composer.render();
+      return;
+    }
 
     if (blur <= 0.0005 || !composer || !blurPass) {
       // Strictly bypass post-processing when idle so models remain razor-sharp

@@ -74,6 +74,7 @@ function StageRig({
 }: StageRigProps) {
   const { camera, size } = useThree();
   const [displayedEraIndex, setDisplayedEraIndex] = useState<number>(targetEraIndex);
+  const [warmMountReady, setWarmMountReady] = useState<boolean>(false);
 
   const displayedEraRef = useRef<number>(targetEraIndex);
   const latestTargetEraRef = useRef<number>(targetEraIndex);
@@ -100,6 +101,17 @@ function StageRig({
   });
 
   const lookAtVec = useRef(new THREE.Vector3());
+
+  // Mount Eras 2–5 hidden in the background shortly after Era 1 first paint so
+  // Box3 normalization, texture uploads, and shader compilation finish ahead of scroll.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setWarmMountReady(true);
+    }, 320);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, []);
 
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
@@ -299,8 +311,6 @@ function StageRig({
     }
   });
 
-  const activeEra = TELEPHONE_ERAS[displayedEraIndex];
-
   return (
     <>
       <ambientLight intensity={0.48} color="#fffaf8" />
@@ -348,9 +358,17 @@ function StageRig({
       </Environment>
 
       <group ref={modelGroupRef}>
-        <Suspense fallback={<PedestalPlaceholder />}>
-          <NormalizedModel era={activeEra} heroBlendRef={heroBlendRef} />
-        </Suspense>
+        {TELEPHONE_ERAS.map((era, idx) => {
+          const isActive = idx === displayedEraIndex;
+          if (!isActive && !warmMountReady) {
+            return null;
+          }
+          return (
+            <Suspense key={era.id} fallback={isActive ? <PedestalPlaceholder /> : null}>
+              <NormalizedModel era={era} visible={isActive} heroBlendRef={heroBlendRef} />
+            </Suspense>
+          );
+        })}
       </group>
 
       <ContactShadows
