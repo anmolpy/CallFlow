@@ -5,6 +5,7 @@ import com.callflow.dto.AgentResponse;
 import com.callflow.dto.PageResponse;
 import com.callflow.entity.Agent;
 import com.callflow.entity.AgentAvailabilityStatus;
+import com.callflow.exception.BusinessRuleViolationException;
 import com.callflow.exception.DuplicateResourceException;
 import com.callflow.exception.ResourceNotFoundException;
 import com.callflow.mapper.AgentMapper;
@@ -83,7 +84,10 @@ public class AgentService {
             Pageable pageable) {
         Pageable sanitized = paginationValidator.sanitize(pageable, ALLOWED_SORT_FIELDS, "createdAt");
         Page<Agent> page;
-        if (query != null && !query.isBlank()) {
+        boolean hasQuery = query != null && !query.isBlank();
+        if (hasQuery && availabilityStatus != null) {
+            page = agentRepository.searchByAvailabilityStatus(query.trim(), availabilityStatus, sanitized);
+        } else if (hasQuery) {
             page = agentRepository.search(query.trim(), sanitized);
         } else if (availabilityStatus != null) {
             page = agentRepository.findByAvailabilityStatus(availabilityStatus, sanitized);
@@ -91,5 +95,26 @@ public class AgentService {
             page = agentRepository.findAll(sanitized);
         }
         return PageResponse.from(page.map(agentMapper::toResponse));
+    }
+
+    /**
+     * Loads an agent and ensures they are eligible to be assigned to an active call.
+     */
+    public Agent requireAssignableAgent(Long agentId) {
+        Agent agent = agentRepository.findById(agentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Agent", agentId));
+        validateAssignable(agent);
+        return agent;
+    }
+
+    /**
+     * Validates that an agent's current availability allows call assignment.
+     */
+    public void validateAssignable(Agent agent) {
+        if (agent.getAvailabilityStatus() == AgentAvailabilityStatus.OFFLINE) {
+            throw new BusinessRuleViolationException(
+                    "Cannot assign call to agent " + agent.getId() + " because agent is OFFLINE"
+            );
+        }
     }
 }

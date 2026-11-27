@@ -27,4 +27,17 @@ public interface AgentRepository extends JpaRepository<Agent, Long> {
                OR LOWER(a.email) LIKE LOWER(CONCAT('%', :query, '%'))
             """)
     Page<Agent> search(@Param("query") String query, Pageable pageable);
+
+    @Query("""
+            SELECT a FROM Agent a
+            WHERE a.availabilityStatus = :status
+              AND (LOWER(a.firstName) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(a.lastName) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(CONCAT(a.firstName, ' ', a.lastName)) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(a.email) LIKE LOWER(CONCAT('%', :query, '%')))
+            """)
+    Page<Agent> searchByAvailabilityStatus(
+            @Param("query") String query,
+            @Param("status") AgentAvailabilityStatus status,
+            Pageable pageable);
 }

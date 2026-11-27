@@ -9,7 +9,6 @@ import com.callflow.dto.CreateCallRequest;
 import com.callflow.dto.PageResponse;
 import com.callflow.dto.UpdateCallStatusRequest;
 import com.callflow.entity.Agent;
-import com.callflow.entity.AgentAvailabilityStatus;
 import com.callflow.entity.Call;
 import com.callflow.entity.CallNote;
 import com.callflow.entity.CallStatus;
@@ -45,6 +44,7 @@ public class CallService {
     private final CallRepository callRepository;
     private final CustomerRepository customerRepository;
     private final AgentRepository agentRepository;
+    private final AgentService agentService;
     private final CallMapper callMapper;
     private final CallLifecycleValidator lifecycleValidator;
     private final PaginationValidator paginationValidator;
@@ -53,12 +53,14 @@ public class CallService {
             CallRepository callRepository,
             CustomerRepository customerRepository,
             AgentRepository agentRepository,
+            AgentService agentService,
             CallMapper callMapper,
             CallLifecycleValidator lifecycleValidator,
             PaginationValidator paginationValidator) {
         this.callRepository = callRepository;
         this.customerRepository = customerRepository;
         this.agentRepository = agentRepository;
+        this.agentService = agentService;
         this.callMapper = callMapper;
         this.lifecycleValidator = lifecycleValidator;
         this.paginationValidator = paginationValidator;
@@ -157,14 +159,7 @@ public class CallService {
             );
         }
 
-        Agent agent = agentRepository.findById(request.agentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Agent", request.agentId()));
-
-        if (agent.getAvailabilityStatus() == AgentAvailabilityStatus.OFFLINE) {
-            throw new BusinessRuleViolationException(
-                    "Cannot assign call to agent " + agent.getId() + " because agent is OFFLINE"
-            );
-        }
+        Agent agent = agentService.requireAssignableAgent(request.agentId());
 
         call.setAgent(agent);
         return callMapper.toDetailResponse(callRepository.save(call));
@@ -243,14 +238,11 @@ public class CallService {
         if (agentId == null) {
             return null;
         }
-        Agent agent = agentRepository.findById(agentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Agent", agentId));
-        if (!isTerminalStatus(targetStatus) && agent.getAvailabilityStatus() == AgentAvailabilityStatus.OFFLINE) {
-            throw new BusinessRuleViolationException(
-                    "Cannot assign active call to agent " + agentId + " because agent is OFFLINE"
-            );
+        if (!isTerminalStatus(targetStatus)) {
+            return agentService.requireAssignableAgent(agentId);
         }
-        return agent;
+        return agentRepository.findById(agentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Agent", agentId));
     }
 
     private boolean isTerminalStatus(CallStatus status) {

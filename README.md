@@ -18,6 +18,10 @@ CallFlow is an incrementally developed customer-support call management applicat
 - **Milestone 4 — Customer Management**: Completed
   - Implemented [CustomerController](backend/src/main/java/com/callflow/controller/CustomerController.java) endpoints: `POST /api/customers`, `GET /api/customers/{id}`, `PUT /api/customers/{id}`, and `GET /api/customers` (paginated search via `query`)
   - Added `test` profile configuration in [application-test.yml](backend/src/test/resources/application-test.yml) and verified `CustomerServiceTest`, `CustomerRepositoryTest`, and `CustomerControllerTest` (`15` tests passing)
+- **Milestone 5 — Agent Management**: Completed
+  - Implemented [AgentController](backend/src/main/java/com/callflow/controller/AgentController.java) endpoints: `POST /api/agents`, `GET /api/agents/{id}`, `PUT /api/agents/{id}`, `PATCH /api/agents/{id}/availability`, and `GET /api/agents` (paginated search with `query` and `availabilityStatus` filters)
+  - Added combined query + availability filtering in [AgentRepository](backend/src/main/java/com/callflow/repository/AgentRepository.java) and centralized agent assignment validation (`requireAssignableAgent` / `validateAssignable`) in [AgentService](backend/src/main/java/com/callflow/service/AgentService.java)
+  - Verified `AgentServiceTest`, `AgentRepositoryTest`, and `AgentControllerTest` (`29` total backend tests passing)
 
 ## Tech Stack (Backend Foundation)
 
@@ -76,7 +80,7 @@ CallFlow is an incrementally developed customer-support call management applicat
 2. **Milestone 2** — Backend Build and Application Startup *(Completed)*
 3. **Milestone 3** — Database and Entity Layer *(Completed)*
 4. **Milestone 4** — Customer Management *(Completed)*
-5. **Milestone 5** — Agent Management
+5. **Milestone 5** — Agent Management *(Completed)*
 6. **Milestone 6** — Call Management
 7. **Milestone 7** — Analytics
 8. **Milestone 8** — Automated Testing and Quality
