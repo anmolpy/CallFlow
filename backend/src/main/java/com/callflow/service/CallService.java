@@ -74,26 +74,10 @@ public class CallService {
         CallStatus targetStatus = request.status() != null ? request.status() : CallStatus.QUEUED;
         Agent agent = resolveAssignableAgent(request.agentId(), targetStatus);
 
-        Instant startedAt = request.startedAt();
-        if (startedAt == null && targetStatus == CallStatus.IN_PROGRESS) {
-            startedAt = Instant.now();
-        }
-        Instant endedAt = request.endedAt();
-
-        lifecycleValidator.validateTimestampsAndDuration(
-                targetStatus, startedAt, endedAt, request.durationSeconds()
-        );
-        Long durationSeconds = lifecycleValidator.resolveDuration(
-                startedAt, endedAt, request.durationSeconds()
-        );
-
         Call call = new Call();
         call.setCustomer(customer);
         call.setAgent(agent);
-        call.setStatus(targetStatus);
-        call.setStartedAt(startedAt);
-        call.setEndedAt(endedAt);
-        call.setDurationSeconds(durationSeconds);
+        applyLifecycleState(call, targetStatus, request.startedAt(), request.endedAt(), request.durationSeconds());
 
         if (request.initialNote() != null && !request.initialNote().isBlank()) {
             CallNote note = new CallNote();
@@ -174,30 +158,42 @@ public class CallService {
         lifecycleValidator.validateStatusTransition(call.getStatus(), targetStatus);
 
         Instant effectiveStart = request.startedAt() != null ? request.startedAt() : call.getStartedAt();
-        if (targetStatus == CallStatus.IN_PROGRESS && effectiveStart == null) {
-            effectiveStart = Instant.now();
-        }
         Instant effectiveEnd = request.endedAt() != null ? request.endedAt() : call.getEndedAt();
-        if (targetStatus == CallStatus.COMPLETED && effectiveEnd == null) {
-            effectiveEnd = Instant.now();
-        }
         Long requestedDuration = request.durationSeconds() != null
                 ? request.durationSeconds()
                 : call.getDurationSeconds();
 
+        applyLifecycleState(call, targetStatus, effectiveStart, effectiveEnd, requestedDuration);
+
+        return callMapper.toDetailResponse(callRepository.save(call));
+    }
+
+    private void applyLifecycleState(
+            Call call,
+            CallStatus targetStatus,
+            Instant startedAt,
+            Instant endedAt,
+            Long requestedDuration) {
+        Instant resolvedStart = startedAt;
+        if (targetStatus == CallStatus.IN_PROGRESS && resolvedStart == null) {
+            resolvedStart = Instant.now();
+        }
+        Instant resolvedEnd = endedAt;
+        if (targetStatus == CallStatus.COMPLETED && resolvedEnd == null) {
+            resolvedEnd = Instant.now();
+        }
+
         lifecycleValidator.validateTimestampsAndDuration(
-                targetStatus, effectiveStart, effectiveEnd, requestedDuration
+                targetStatus, resolvedStart, resolvedEnd, requestedDuration
         );
         Long resolvedDuration = lifecycleValidator.resolveDuration(
-                effectiveStart, effectiveEnd, requestedDuration
+                resolvedStart, resolvedEnd, requestedDuration
         );
 
         call.setStatus(targetStatus);
-        call.setStartedAt(effectiveStart);
-        call.setEndedAt(effectiveEnd);
+        call.setStartedAt(resolvedStart);
+        call.setEndedAt(resolvedEnd);
         call.setDurationSeconds(resolvedDuration);
-
-        return callMapper.toDetailResponse(callRepository.save(call));
     }
 
     @Transactional

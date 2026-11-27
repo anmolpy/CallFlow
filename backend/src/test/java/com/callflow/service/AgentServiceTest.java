@@ -114,6 +114,10 @@ class AgentServiceTest {
         assertThat(updated.email()).isEqualTo("maya.updated@callflow.local");
         assertThat(updated.availabilityStatus()).isEqualTo(AgentAvailabilityStatus.BUSY);
 
+        AgentRequest explicitStatus = new AgentRequest("Maya", "Chen", "maya.updated@callflow.local", AgentAvailabilityStatus.AWAY);
+        AgentResponse updatedWithStatus = agentService.updateAgent(2L, explicitStatus);
+        assertThat(updatedWithStatus.availabilityStatus()).isEqualTo(AgentAvailabilityStatus.AWAY);
+
         when(agentRepository.existsByEmailIgnoreCaseAndIdNot("taken@callflow.local", 2L)).thenReturn(true);
         AgentRequest conflict = new AgentRequest("Maya", "Lin", "taken@callflow.local", AgentAvailabilityStatus.AVAILABLE);
         assertThatThrownBy(() -> agentService.updateAgent(2L, conflict))

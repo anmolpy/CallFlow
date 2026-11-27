@@ -213,5 +213,15 @@ class CallControllerTest {
         mockMvc.perform(get("/api/customers/{id}/calls", 999999L))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code", is("RESOURCE_NOT_FOUND")));
+
+        mockMvc.perform(get("/api/calls/not-a-number"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code", is("BAD_REQUEST")));
+
+        mockMvc.perform(post("/api/calls")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{malformed-json"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code", is("BAD_REQUEST")));
     }
 }

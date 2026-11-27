@@ -29,6 +29,11 @@ CallFlow is an incrementally developed customer-support call management applicat
 - **Milestone 7 — Analytics**: Completed
   - Verified [AnalyticsController](backend/src/main/java/com/callflow/controller/AnalyticsController.java) endpoints (`GET /api/analytics/overview`, `GET /api/analytics/calls-by-status`, `GET /api/analytics/agent-performance`), [AnalyticsService](backend/src/main/java/com/callflow/service/AnalyticsService.java), and database-side aggregations in [CallRepository](backend/src/main/java/com/callflow/repository/CallRepository.java)
   - Added and verified `AnalyticsServiceTest`, `AnalyticsRepositoryTest`, and `AnalyticsControllerTest` (`51` total backend tests passing)
+- **Milestone 8 — Automated Testing and Quality**: Completed
+  - Added [PaginationValidatorTest](backend/src/test/java/com/callflow/validation/PaginationValidatorTest.java), [CallRepositoryTest](backend/src/test/java/com/callflow/repository/CallRepositoryTest.java), and [CallFlowPostgresIT](backend/src/test/java/com/callflow/integration/CallFlowPostgresIT.java) (`@Testcontainers(disabledWithoutDocker = true)` with `@ServiceConnection`)
+  - Simplified call lifecycle timestamp/duration handling in [CallService](backend/src/main/java/com/callflow/service/CallService.java) via shared `applyLifecycleState` helper
+  - Verified `mvnw.cmd -o verify`: `55` Surefire unit/integration tests passing (`0` failures, `0` errors) and JaCoCo coverage gate (`>= 80%`) met (`98.6%` service, `98.8%` mapper, `95.6%` validation line coverage)
+  - *Note*: `CallFlowPostgresIT` is skipped automatically when Docker is unavailable (`disabledWithoutDocker = true`) while local PostgreSQL integration tests verify all endpoints and queries against PostgreSQL `18.4`
 
 ## Tech Stack (Backend Foundation)
 
@@ -90,7 +95,7 @@ CallFlow is an incrementally developed customer-support call management applicat
 5. **Milestone 5** — Agent Management *(Completed)*
 6. **Milestone 6** — Call Management *(Completed)*
 7. **Milestone 7** — Analytics *(Completed)*
-8. **Milestone 8** — Automated Testing and Quality
+8. **Milestone 8** — Automated Testing and Quality *(Completed)*
 9. **Milestone 8B** — Apache JMeter Performance Testing
 10. **Milestone 9** — Authentication and Authorization
 11. **Milestone 10** — API Documentation
