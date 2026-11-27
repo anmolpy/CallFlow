@@ -47,6 +47,8 @@ CallFlow is an incrementally developed customer-support call management applicat
   - Implemented typed API client modules ([client.ts](frontend/src/api/client.ts), [auth.ts](frontend/src/api/auth.ts), [customers.ts](frontend/src/api/customers.ts), [agents.ts](frontend/src/api/agents.ts), [calls.ts](frontend/src/api/calls.ts), [analytics.ts](frontend/src/api/analytics.ts)) and [AuthContext](frontend/src/context/AuthContext.tsx)
   - Built reusable UI primitives (`Badge`, `Button`, `Card`, `EmptyState`, `ErrorBanner`, `LoadingSpinner`, `PageHeader`), [AppShell](frontend/src/components/layout/AppShell.tsx), [ProtectedRoute](frontend/src/routes/ProtectedRoute.tsx), and placeholder application routes in [App.tsx](frontend/src/App.tsx)
   - Verified `npm run typecheck`, `npm run build`, and live Vite dev server startup (`http://127.0.0.1:5173/` -> `200`)
+- **Milestone 12 — Frontend Features *(In Progress)***:
+  - **Login Page**: Completed ([LoginPage.tsx](frontend/src/pages/LoginPage.tsx), [LoginPage.test.tsx](frontend/src/pages/LoginPage.test.tsx)) with email/password validation, password visibility toggle, API error & field-error rendering, post-login redirect restoration, and Vitest + Testing Library verification (`6` passing tests)
 
 ## Tech Stack
 
@@ -115,9 +117,10 @@ CallFlow is an incrementally developed customer-support call management applicat
    ```
    Open `http://localhost:5173`.
 
-3. **Typecheck and build for production**:
+3. **Run unit tests, typecheck, and build for production**:
    ```powershell
    cd F:\CallFlow\frontend
+   npm test
    npm run typecheck
    npm run build
    ```
@@ -136,6 +139,6 @@ CallFlow is an incrementally developed customer-support call management applicat
 10. **Milestone 9** — Authentication and Authorization *(Completed)*
 11. **Milestone 10** — API Documentation *(Completed)*
 12. **Milestone 11** — Frontend Foundation *(Completed)*
-13. **Milestone 12** — Frontend Features
+13. **Milestone 12** — Frontend Features *(In Progress: Login completed; Dashboard, Customers, Customer Details, Calls, Call Details, Agents remaining)*
 14. **Milestone 13** — Docker and CI/CD
 15. **Milestone 14** — Documentation and Final Review

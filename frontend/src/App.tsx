@@ -1,27 +1,13 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
+import { LoginPage } from './pages/LoginPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 
 export function App() {
   return (
     <Routes>
-      <Route
-        path="/login"
-        element={
-          <PlaceholderPage
-            standalone
-            title="Sign In"
-            description="Authentication entry point powered by authApi.login and AuthContext."
-            routePath="/login"
-            plannedCapabilities={[
-              'Authenticate agents and admins against POST /api/auth/login',
-              'Persist JWT bearer tokens and load GET /api/auth/me profile state',
-              'Redirect authenticated users into the operational dashboard',
-            ]}
-          />
-        }
-      />
+      <Route path="/login" element={<LoginPage />} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
